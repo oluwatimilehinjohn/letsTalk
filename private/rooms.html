@@ -1,12 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
 
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link
       rel="stylesheet"
@@ -15,10 +12,7 @@
       crossorigin="anonymous"
     />
 
-    <link
-      rel="stylesheet"
-      href="/css/style.css"
-    />
+    <link rel="stylesheet" href="/css/style.css" />
 
     <title>Select Room | letsTalk</title>
   </head>
@@ -35,61 +29,36 @@
       <main class="join-main">
         <h2>
           Welcome,
-          <span id="current-user">...</span>
+          <a id="current-user" href="/profile"> ... </a>
         </h2>
 
-        <p class="auth-description">
-          Select a room to start chatting.
-        </p>
+        <p class="auth-description">Select a room to start chatting.</p>
 
         <form id="room-form">
           <div class="form-control">
-            <label for="room">
-              Room
-            </label>
+            <label for="room"> Room </label>
 
-            <select
-              name="room"
-              id="room"
-            >
-              <option value="JavaScript">
-                JavaScript
-              </option>
+            <select name="room" id="room">
+              <option value="JavaScript">JavaScript</option>
 
-              <option value="Python">
-                Python
-              </option>
+              <option value="Python">Python</option>
 
-              <option value="PHP">
-                PHP
-              </option>
+              <option value="PHP">PHP</option>
 
-              <option value="C#">
-                C#
-              </option>
+              <option value="C#">C#</option>
 
-              <option value="Ruby">
-                Ruby
-              </option>
+              <option value="Ruby">Ruby</option>
 
-              <option value="Java">
-                Java
-              </option>
+              <option value="Java">Java</option>
             </select>
           </div>
 
-          <button
-            type="submit"
-            class="btn"
-          >
-            Join Chat
-          </button>
-
-          <button
-            type="button"
-            class="btn btn-danger"
-            id="logout-btn"
-          >
+          <button type="submit" class="btn">Join Chat</button>
+          <a href="/profile" class="btn btn-secondary">
+            <i class="fas fa-user"></i>
+            My Profile
+          </a>
+          <button type="button" class="btn btn-danger" id="logout-btn">
             Log Out
           </button>
         </form>

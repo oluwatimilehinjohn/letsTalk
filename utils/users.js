@@ -1,13 +1,15 @@
 const users = [];
 
-function userJoin(
-  id,
+function userJoin({
+  socketId,
   userId,
   username,
-  room
-) {
+  displayName,
+  avatarUrl,
+  room,
+}) {
   const existingIndex = users.findIndex(
-    (user) => user.id === id
+    (user) => user.socketId === socketId
   );
 
   if (existingIndex !== -1) {
@@ -15,9 +17,11 @@ function userJoin(
   }
 
   const user = {
-    id,
+    socketId,
     userId,
     username,
+    displayName: displayName || username,
+    avatarUrl: avatarUrl || null,
     room,
   };
 
@@ -26,25 +30,46 @@ function userJoin(
   return user;
 }
 
-function getCurrentUser(id) {
-  return users.find((user) => user.id === id);
+function getCurrentUser(socketId) {
+  return users.find(
+    (user) => user.socketId === socketId
+  );
 }
 
-function userLeave(id) {
+function userLeave(socketId) {
   const index = users.findIndex(
-    (user) => user.id === id
+    (user) => user.socketId === socketId
   );
 
-  if (index !== -1) {
-    return users.splice(index, 1)[0];
+  if (index === -1) {
+    return null;
   }
 
-  return null;
+  return users.splice(index, 1)[0];
 }
 
 function getRoomUsers(room) {
-  return users.filter(
-    (user) => user.room === room
+  const uniqueUsers = new Map();
+
+  users
+    .filter((user) => user.room === room)
+    .forEach((user) => {
+      if (!uniqueUsers.has(user.userId)) {
+        uniqueUsers.set(user.userId, {
+          userId: user.userId,
+          username: user.username,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+        });
+      }
+    });
+
+  return Array.from(uniqueUsers.values());
+}
+
+function isUserOnline(userId) {
+  return users.some(
+    (user) => user.userId === userId
   );
 }
 
@@ -53,4 +78,5 @@ module.exports = {
   getCurrentUser,
   userLeave,
   getRoomUsers,
+  isUserOnline,
 };

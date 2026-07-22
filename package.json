@@ -3,11 +3,9 @@
   "version": "1.0.0",
   "description": "Realtime chat app with rooms",
   "main": "server.js",
-
-    "engines": {
+  "engines": {
     "node": ">=22.0.0 <23.0.0"
   },
-  
   "scripts": {
     "start": "node server",
     "dev": "nodemon server"
@@ -17,6 +15,7 @@
   "dependencies": {
     "@socket.io/redis-adapter": "^7.1.0",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
     "connect-mongo": "^6.0.0",
     "dotenv": "^14.3.2",
     "express": "^4.17.1",
@@ -25,6 +24,7 @@
     "moment": "^2.24.0",
     "mongodb": "^7.5.0",
     "mongoose": "^9.8.0",
+    "multer": "^2.2.0",
     "redis": "^4.0.2",
     "socket.io": "^4.4.1"
   },

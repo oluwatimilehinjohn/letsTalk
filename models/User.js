@@ -17,6 +17,17 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
     },
 
+    displayName: {
+      type: String,
+      trim: true,
+      minlength: 2,
+      maxlength: 40,
+
+      default: function setDefaultDisplayName() {
+        return this.username;
+      },
+    },
+
     email: {
       type: String,
       required: true,
@@ -35,8 +46,15 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    avatarPublicId: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
     bio: {
       type: String,
+      trim: true,
       maxlength: 160,
       default: "",
     },
@@ -61,4 +79,7 @@ userSchema.index(
   { unique: true }
 );
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model(
+  "User",
+  userSchema
+);

@@ -1,12 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
 
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link
       rel="stylesheet"
@@ -15,10 +12,7 @@
       crossorigin="anonymous"
     />
 
-    <link
-      rel="stylesheet"
-      href="/css/style.css"
-    />
+    <link rel="stylesheet" href="/css/style.css" />
 
     <title>Chat | letsTalk</title>
   </head>
@@ -34,33 +28,47 @@
 
           <small>
             Signed in as
-            <strong id="current-user">
-              ...
-            </strong>
+            <a id="current-user" href="/profile"> ... </a>
           </small>
         </div>
 
         <div class="chat-header-actions">
           <button
-            id="leave-btn"
-            class="btn"
+            id="members-toggle"
+            class="btn btn-secondary mobile-only"
             type="button"
+            aria-controls="chat-sidebar"
+            aria-expanded="false"
           >
-            Leave Room
+            <i class="fas fa-users"></i>
+            <span class="action-label">Members</span>
           </button>
 
-          <button
-            id="logout-btn"
-            class="btn btn-danger"
-            type="button"
-          >
-            Log Out
+          <a href="/profile" class="btn btn-secondary">
+            <i class="fas fa-user"></i>
+            <span class="action-label">Profile</span>
+          </a>
+
+          <button id="leave-btn" class="btn btn-secondary" type="button">
+            <i class="fas fa-door-open"></i>
+            <span class="action-label">Leave Room</span>
+          </button>
+
+          <button id="logout-btn" class="btn btn-danger" type="button">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="action-label">Log Out</span>
           </button>
         </div>
       </header>
+      <button
+        type="button"
+        id="sidebar-backdrop"
+        class="sidebar-backdrop"
+        aria-label="Close member list"
+      ></button>
 
       <main class="chat-main">
-        <div class="chat-sidebar">
+        <div class="chat-sidebar" id="chat-sidebar">
           <h3>
             <i class="fas fa-comments"></i>
             Room Name

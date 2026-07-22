@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+      crossorigin="anonymous"
+    />
+
+    <link
+      rel="stylesheet"
+      href="/css/style.css"
+    />
+
+    <title>User Profile | letsTalk</title>
+  </head>
+
+  <body>
+    <main class="public-profile-page">
+      <header class="profile-navigation">
+        <a
+          href="/rooms"
+          class="brand-link"
+        >
+          <i class="fas fa-comment-dots"></i>
+          letsTalk
+        </a>
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="back-btn"
+        >
+          <i class="fas fa-arrow-left"></i>
+          Go Back
+        </button>
+      </header>
+
+      <section
+        class="public-profile-card"
+        id="profile-card"
+      >
+        <div class="public-profile-avatar">
+          <img
+            id="user-avatar"
+            alt="User avatar"
+            hidden
+          />
+
+          <div
+            id="user-avatar-fallback"
+            class="avatar-fallback"
+          >
+            LT
+          </div>
+
+          <span
+            id="online-indicator"
+            class="profile-presence"
+          ></span>
+        </div>
+
+        <p class="profile-eyebrow">
+          Member profile
+        </p>
+
+        <h1 id="user-display-name">
+          Loading...
+        </h1>
+
+        <p id="user-username">
+          @username
+        </p>
+
+        <p
+          id="user-status"
+          class="public-profile-status"
+        >
+          Checking status...
+        </p>
+
+        <p
+          id="user-bio"
+          class="public-profile-bio"
+        ></p>
+
+        <div class="public-profile-meta">
+          <div>
+            <span>Member since</span>
+            <strong id="member-since">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Last active</span>
+            <strong id="last-active">
+              —
+            </strong>
+          </div>
+        </div>
+
+        <p
+          id="profile-error"
+          class="profile-status"
+          data-type="error"
+        ></p>
+      </section>
+    </main>
+
+    <script src="/js/user-profile.js"></script>
+  </body>
+</html>
