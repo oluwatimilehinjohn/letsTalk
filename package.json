@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "Realtime chat app with rooms",
   "main": "server.js",
+
+    "engines": {
+    "node": ">=22.0.0 <23.0.0"
+  },
+  
   "scripts": {
     "start": "node server",
     "dev": "nodemon server"
