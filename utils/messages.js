@@ -5,14 +5,27 @@ function formatMessage(
   text,
   createdAt = new Date(),
   id = null,
-  userId = null
+  userId = null,
+  author = {}
 ) {
   return {
     id,
     userId,
     username,
+
+    displayName:
+      author.displayName ||
+      username,
+
+    avatarUrl:
+      author.avatarUrl || null,
+
     text,
-    time: moment(createdAt).format("h:mm a"),
+
+    time: moment(createdAt).format(
+      "h:mm a"
+    ),
+
     createdAt,
   };
 }
