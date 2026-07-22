@@ -20,7 +20,7 @@
       href="/css/style.css"
     />
 
-    <title>Login | letsTalk</title>
+    <title>Create Account | letsTalk</title>
   </head>
 
   <body>
@@ -33,10 +33,10 @@
       </header>
 
       <main class="join-main">
-        <h2>Welcome back</h2>
+        <h2>Create your account</h2>
 
         <p class="auth-description">
-          Log in to continue chatting.
+          Your username will identify you in chat rooms.
         </p>
 
         <div
@@ -45,19 +45,37 @@
           role="alert"
         ></div>
 
-        <form id="login-form">
+        <form id="register-form">
           <div class="form-control">
-            <label for="identifier">
-              Email or username
+            <label for="username">
+              Username
             </label>
 
             <input
               type="text"
-              id="identifier"
-              name="identifier"
+              id="username"
+              name="username"
               required
+              minlength="3"
+              maxlength="24"
+              pattern="[A-Za-z0-9_]+"
               autocomplete="username"
-              placeholder="Enter email or username"
+              placeholder="Example: timi_dev"
+            />
+          </div>
+
+          <div class="form-control">
+            <label for="email">
+              Email
+            </label>
+
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="you@example.com"
             />
           </div>
 
@@ -71,8 +89,27 @@
               id="password"
               name="password"
               required
-              autocomplete="current-password"
-              placeholder="Enter password"
+              minlength="8"
+              maxlength="72"
+              autocomplete="new-password"
+              placeholder="At least 8 characters"
+            />
+          </div>
+
+          <div class="form-control">
+            <label for="confirm-password">
+              Confirm password
+            </label>
+
+            <input
+              type="password"
+              id="confirm-password"
+              name="confirmPassword"
+              required
+              minlength="8"
+              maxlength="72"
+              autocomplete="new-password"
+              placeholder="Enter password again"
             />
           </div>
 
@@ -81,19 +118,19 @@
             class="btn"
             id="submit-btn"
           >
-            Log In
+            Create Account
           </button>
         </form>
 
         <p class="auth-link">
-          Don't have an account?
-          <a href="/register.html">
-            Create one
+          Already registered?
+          <a href="/">
+            Log in
           </a>
         </p>
       </main>
     </div>
 
-    <script src="/js/login.js"></script>
+    <script src="/js/register.js"></script>
   </body>
 </html>
