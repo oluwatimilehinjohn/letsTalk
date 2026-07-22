@@ -862,11 +862,9 @@ async function startServer() {
   await User.init();
   await Message.init();
 
-  server.listen(PORT, () => {
-    console.log(
-      `Server running on port ${PORT}`
-    );
-  });
+  server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
 }
 
 startServer();
