@@ -1,90 +1,150 @@
-const chatForm = document.getElementById('chat-form');
-const chatMessages = document.querySelector('.chat-messages');
-const roomName = document.getElementById('room-name');
-const userList = document.getElementById('users');
+const chatForm = document.getElementById("chat-form");
+const chatMessages = document.querySelector(".chat-messages");
+const roomName = document.getElementById("room-name");
+const userList = document.getElementById("users");
 
-// Get username and room from URL
+// Get username and room from the URL
 const { username, room } = Qs.parse(location.search, {
   ignoreQueryPrefix: true,
 });
 
 const socket = io();
 
-// Join chatroom
-socket.emit('joinRoom', { username, room });
+/*
+ * Join again whenever Socket.IO connects or reconnects.
+ */
+socket.on("connect", () => {
+  socket.emit("joinRoom", {
+    username,
+    room,
+  });
+});
 
-// Get room and users
-socket.on('roomUsers', ({ room, users }) => {
+/*
+ * Receive room and active-user information.
+ */
+socket.on("roomUsers", ({ room, users }) => {
   outputRoomName(room);
   outputUsers(users);
 });
 
-// Message from server
-socket.on('message', (message) => {
-  console.log(message);
-  outputMessage(message);
+/*
+ * Load stored messages when entering the room.
+ */
+socket.on("messageHistory", (messages) => {
+  chatMessages.innerHTML = "";
 
-  // Scroll down
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  messages.forEach((message) => {
+    outputMessage(message);
+  });
+
+  scrollToLatestMessage();
 });
 
-// Message submit
-chatForm.addEventListener('submit', (e) => {
-  e.preventDefault();
+/*
+ * Receive one new live message.
+ */
+socket.on("message", (message) => {
+  outputMessage(message);
+  scrollToLatestMessage();
+});
 
-  // Get message text
-  let msg = e.target.elements.msg.value;
+/*
+ * Send a message.
+ */
+chatForm.addEventListener("submit", (event) => {
+  event.preventDefault();
 
-  msg = msg.trim();
+  const messageInput = event.target.elements.msg;
+  const message = messageInput.value.trim();
 
-  if (!msg) {
-    return false;
+  if (!message) {
+    return;
   }
 
-  // Emit message to server
-  socket.emit('chatMessage', msg);
+  if (message.length > 1000) {
+    alert("Messages cannot be longer than 1,000 characters.");
+    return;
+  }
 
-  // Clear input
-  e.target.elements.msg.value = '';
-  e.target.elements.msg.focus();
+  socket.emit("chatMessage", message);
+
+  messageInput.value = "";
+  messageInput.focus();
 });
 
-// Output message to DOM
+/*
+ * Add one message to the page.
+ */
 function outputMessage(message) {
-  const div = document.createElement('div');
-  div.classList.add('message');
-  const p = document.createElement('p');
-  p.classList.add('meta');
-  p.innerText = message.username;
-  p.innerHTML += `<span>${message.time}</span>`;
-  div.appendChild(p);
-  const para = document.createElement('p');
-  para.classList.add('text');
-  para.innerText = message.text;
-  div.appendChild(para);
-  document.querySelector('.chat-messages').appendChild(div);
+  const messageElement = document.createElement("div");
+  messageElement.classList.add("message");
+
+  if (message.id) {
+    messageElement.dataset.messageId = message.id;
+  }
+
+  const metadata = document.createElement("p");
+  metadata.classList.add("meta");
+
+  const usernameText = document.createTextNode(
+    message.username
+  );
+
+  const time = document.createElement("span");
+  time.innerText = message.time;
+
+  metadata.appendChild(usernameText);
+  metadata.appendChild(time);
+
+  const text = document.createElement("p");
+  text.classList.add("text");
+  text.innerText = message.text;
+
+  messageElement.appendChild(metadata);
+  messageElement.appendChild(text);
+
+  chatMessages.appendChild(messageElement);
 }
 
-// Add room name to DOM
-function outputRoomName(room) {
-  roomName.innerText = room;
+/*
+ * Show the current room.
+ */
+function outputRoomName(currentRoom) {
+  roomName.innerText = currentRoom;
 }
 
-// Add users to DOM
+/*
+ * Show users currently connected to the room.
+ */
 function outputUsers(users) {
-  userList.innerHTML = '';
+  userList.innerHTML = "";
+
   users.forEach((user) => {
-    const li = document.createElement('li');
-    li.innerText = user.username;
-    userList.appendChild(li);
+    const listItem = document.createElement("li");
+    listItem.innerText = user.username;
+    userList.appendChild(listItem);
   });
 }
 
-//Prompt the user before leave chat room
-document.getElementById('leave-btn').addEventListener('click', () => {
-  const leaveRoom = confirm('Are you sure you want to leave the chatroom?');
-  if (leaveRoom) {
-    window.location = '../index.html';
-  } else {
-  }
-});
+/*
+ * Scroll to the latest message.
+ */
+function scrollToLatestMessage() {
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+/*
+ * Confirm before leaving the room.
+ */
+document
+  .getElementById("leave-btn")
+  .addEventListener("click", () => {
+    const shouldLeave = confirm(
+      "Are you sure you want to leave the chatroom?"
+    );
+
+    if (shouldLeave) {
+      window.location = "../index.html";
+    }
+  });

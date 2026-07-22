@@ -1,10 +1,19 @@
-const moment = require('moment');
+//allow old messages to retain original time stamp
 
-function formatMessage(username, text) {
+const moment = require("moment");
+
+function formatMessage(
+  username,
+  text,
+  createdAt = new Date(),
+  id = null
+) {
   return {
+    id,
     username,
     text,
-    time: moment().format('h:mm a')
+    time: moment(createdAt).format("h:mm a"),
+    createdAt,
   };
 }
 
