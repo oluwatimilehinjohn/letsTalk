@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+      integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+      crossorigin="anonymous"
+    />
+
+    <link
+      rel="stylesheet"
+      href="/css/style.css"
+    />
+
+    <title>Select Room | letsTalk</title>
+  </head>
+
+  <body>
+    <div class="join-container">
+      <header class="join-header">
+        <h1>
+          <i class="fas fa-comments"></i>
+          letsTalk
+        </h1>
+      </header>
+
+      <main class="join-main">
+        <h2>
+          Welcome,
+          <span id="current-user">...</span>
+        </h2>
+
+        <p class="auth-description">
+          Select a room to start chatting.
+        </p>
+
+        <form id="room-form">
+          <div class="form-control">
+            <label for="room">
+              Room
+            </label>
+
+            <select
+              name="room"
+              id="room"
+            >
+              <option value="JavaScript">
+                JavaScript
+              </option>
+
+              <option value="Python">
+                Python
+              </option>
+
+              <option value="PHP">
+                PHP
+              </option>
+
+              <option value="C#">
+                C#
+              </option>
+
+              <option value="Ruby">
+                Ruby
+              </option>
+
+              <option value="Java">
+                Java
+              </option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            class="btn"
+          >
+            Join Chat
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-danger"
+            id="logout-btn"
+          >
+            Log Out
+          </button>
+        </form>
+      </main>
+    </div>
+
+    <script src="/js/rooms.js"></script>
+  </body>
+</html>

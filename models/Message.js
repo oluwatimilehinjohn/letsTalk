@@ -2,6 +2,13 @@ const mongoose = require("mongoose");
 
 const messageSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+
     username: {
       type: String,
       required: true,
@@ -29,7 +36,12 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-// Speeds up fetching the latest messages from one room
-messageSchema.index({ room: 1, createdAt: -1 });
+messageSchema.index({
+  room: 1,
+  createdAt: -1,
+});
 
-module.exports = mongoose.model("Message", messageSchema);
+module.exports = mongoose.model(
+  "Message",
+  messageSchema
+);
