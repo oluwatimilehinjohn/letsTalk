@@ -1,12 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
 
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link
       rel="stylesheet"
@@ -16,8 +13,10 @@
 
     <link
       rel="stylesheet"
-      href="/css/style.css"
+      href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css"
     />
+
+    <link rel="stylesheet" href="/css/style.css" />
 
     <title>My Profile | letsTalk</title>
   </head>
@@ -25,28 +24,20 @@
   <body>
     <main class="profile-page">
       <header class="profile-navigation">
-        <a
-          href="/rooms"
-          class="brand-link"
-        >
+        <a href="/rooms" class="brand-link">
           <i class="fas fa-comment-dots"></i>
           letsTalk
         </a>
 
         <div class="profile-navigation-actions">
-          <a
-            href="/rooms"
-            class="btn btn-secondary"
-          >
+          <a href="/rooms" class="btn btn-secondary" id="profile-back-link">
             <i class="fas fa-arrow-left"></i>
-            Rooms
+
+            <span id="profile-back-text"> Rooms </span>
           </a>
 
-          <button
-            type="button"
-            class="btn btn-danger"
-            id="logout-btn"
-          >
+          <button type="button" class="btn btn-danger" id="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
             Log Out
           </button>
         </div>
@@ -54,32 +45,17 @@
 
       <section class="profile-hero">
         <div class="profile-avatar-shell">
-          <img
-            id="avatar-image"
-            alt="Profile avatar"
-            hidden
-          />
+          <img id="avatar-image" alt="Profile avatar" hidden />
 
-          <div
-            id="avatar-fallback"
-            class="avatar-fallback"
-          >
-            LT
-          </div>
+          <div id="avatar-fallback" class="avatar-fallback">LT</div>
         </div>
 
         <div>
-          <p class="profile-eyebrow">
-            Your profile
-          </p>
+          <p class="profile-eyebrow">Your profile</p>
 
-          <h1 id="profile-heading">
-            Loading...
-          </h1>
+          <h1 id="profile-heading">Loading...</h1>
 
-          <p id="profile-username">
-            @username
-          </p>
+          <p id="profile-username">@username</p>
         </div>
       </section>
 
@@ -90,21 +66,17 @@
               <h2>Profile image</h2>
 
               <p>
-                JPEG, PNG or WebP. Maximum 4 MB.
+                Crop and position your image before uploading. JPEG, PNG or
+                WebP, up to 4 MB.
               </p>
             </div>
           </div>
 
           <form id="avatar-form">
-            <label
-              class="file-picker"
-              for="avatar-input"
-            >
-              <i class="fas fa-image"></i>
+            <label class="file-picker" for="avatar-input">
+              <i class="fas fa-crop-alt"></i>
 
-              <span id="file-picker-text">
-                Choose an image
-              </span>
+              <span id="file-picker-text"> Choose and crop an image </span>
             </label>
 
             <input
@@ -116,11 +88,8 @@
             />
 
             <div class="profile-form-actions">
-              <button
-                type="submit"
-                class="btn"
-                id="avatar-submit"
-              >
+              <button type="submit" class="btn" id="avatar-submit">
+                <i class="fas fa-cloud-upload-alt"></i>
                 Upload avatar
               </button>
 
@@ -129,14 +98,12 @@
                 class="btn btn-danger"
                 id="remove-avatar-btn"
               >
+                <i class="fas fa-trash"></i>
                 Remove
               </button>
             </div>
 
-            <p
-              id="avatar-status"
-              class="profile-status"
-            ></p>
+            <p id="avatar-status" class="profile-status"></p>
           </form>
         </section>
 
@@ -145,17 +112,13 @@
             <div>
               <h2>Personal information</h2>
 
-              <p>
-                Update how your profile appears.
-              </p>
+              <p>Update how your profile appears to other users.</p>
             </div>
           </div>
 
           <form id="profile-form">
             <div class="form-control">
-              <label for="display-name">
-                Display name
-              </label>
+              <label for="display-name"> Display name </label>
 
               <input
                 type="text"
@@ -168,9 +131,7 @@
             </div>
 
             <div class="form-control">
-              <label for="bio">
-                Bio
-              </label>
+              <label for="bio"> Bio </label>
 
               <textarea
                 id="bio"
@@ -180,23 +141,14 @@
                 placeholder="Tell people a little about yourself"
               ></textarea>
 
-              <small id="bio-counter">
-                0/160
-              </small>
+              <small id="bio-counter"> 0/160 </small>
             </div>
 
-            <button
-              type="submit"
-              class="btn"
-              id="profile-submit"
-            >
+            <button type="submit" class="btn" id="profile-submit">
               Save profile
             </button>
 
-            <p
-              id="profile-status"
-              class="profile-status"
-            ></p>
+            <p id="profile-status" class="profile-status"></p>
           </form>
         </section>
 
@@ -205,18 +157,14 @@
             <div>
               <h2>Change password</h2>
 
-              <p>
-                Use at least eight characters.
-              </p>
+              <p>Use a password containing at least eight characters.</p>
             </div>
           </div>
 
           <form id="password-form">
             <div class="password-grid">
               <div class="form-control">
-                <label for="current-password">
-                  Current password
-                </label>
+                <label for="current-password"> Current password </label>
 
                 <input
                   type="password"
@@ -228,9 +176,7 @@
               </div>
 
               <div class="form-control">
-                <label for="new-password">
-                  New password
-                </label>
+                <label for="new-password"> New password </label>
 
                 <input
                   type="password"
@@ -244,23 +190,124 @@
               </div>
             </div>
 
-            <button
-              type="submit"
-              class="btn"
-              id="password-submit"
-            >
+            <button type="submit" class="btn" id="password-submit">
               Change password
             </button>
 
-            <p
-              id="password-status"
-              class="profile-status"
-            ></p>
+            <p id="password-status" class="profile-status"></p>
           </form>
         </section>
       </div>
     </main>
 
-    <script src="/js/profile.js"></script>
+    <!-- Avatar crop modal -->
+    <div id="crop-modal" class="crop-modal" hidden>
+      <button
+        type="button"
+        class="crop-modal-backdrop"
+        id="crop-modal-backdrop"
+        aria-label="Close image editor"
+      ></button>
+
+      <section
+        class="crop-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="crop-dialog-title"
+      >
+        <header class="crop-dialog-header">
+          <div>
+            <p class="profile-eyebrow">Image editor</p>
+
+            <h2 id="crop-dialog-title">Crop your profile image</h2>
+          </div>
+
+          <button
+            type="button"
+            class="crop-close-button"
+            id="crop-close-btn"
+            aria-label="Close image editor"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </header>
+
+        <div class="crop-content">
+          <div class="crop-stage">
+            <img id="crop-image" alt="Image selected for cropping" />
+          </div>
+
+          <aside class="crop-preview-panel">
+            <p>Preview</p>
+
+            <div id="crop-preview" class="crop-avatar-preview"></div>
+
+            <small> This is how the image will appear in chat. </small>
+          </aside>
+        </div>
+
+        <div class="crop-tools">
+          <button
+            type="button"
+            class="crop-tool-button"
+            id="crop-zoom-out"
+            title="Zoom out"
+          >
+            <i class="fas fa-search-minus"></i>
+          </button>
+
+          <button
+            type="button"
+            class="crop-tool-button"
+            id="crop-zoom-in"
+            title="Zoom in"
+          >
+            <i class="fas fa-search-plus"></i>
+          </button>
+
+          <button
+            type="button"
+            class="crop-tool-button"
+            id="crop-rotate-left"
+            title="Rotate left"
+          >
+            <i class="fas fa-undo"></i>
+          </button>
+
+          <button
+            type="button"
+            class="crop-tool-button"
+            id="crop-rotate-right"
+            title="Rotate right"
+          >
+            <i class="fas fa-redo"></i>
+          </button>
+
+          <button
+            type="button"
+            class="crop-tool-button"
+            id="crop-reset"
+            title="Reset image"
+          >
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+
+        <footer class="crop-dialog-actions">
+          <button type="button" class="btn btn-secondary" id="crop-cancel-btn">
+            Cancel
+          </button>
+
+          <button type="button" class="btn" id="crop-apply-btn">
+            <i class="fas fa-check"></i>
+            Use this crop
+          </button>
+        </footer>
+      </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+
+    <script type="module" src="/js/profile/index.js"></script>
   </body>
 </html>

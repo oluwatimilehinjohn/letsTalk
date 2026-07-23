@@ -11,6 +11,7 @@ function formatMessage(
   return {
     id,
     userId,
+
     username,
 
     displayName:
@@ -27,6 +28,10 @@ function formatMessage(
     ),
 
     createdAt,
+
+    replyTo: null,
+
+    reactions: [],
   };
 }
 
