@@ -1,22 +1,30 @@
-const express = require("express");
-
-const requireAuthApi = require(
-  "../middleware/requireAuthApi"
+const express = require(
+  "express"
 );
+
+const requireAuthApi =
+  require(
+    "../middleware/requireAuthApi"
+  );
 
 const {
   createRoom,
   getRoom,
   joinRoom,
+  joinRoomWithCode,
   leaveRoom,
   listRooms,
+  regenerateInviteCode,
 } = require(
   "../controllers/roomController"
 );
 
-const router = express.Router();
+const router =
+  express.Router();
 
-router.use(requireAuthApi);
+router.use(
+  requireAuthApi
+);
 
 router.get(
   "/",
@@ -29,8 +37,18 @@ router.post(
 );
 
 router.post(
+  "/join-with-code",
+  joinRoomWithCode
+);
+
+router.post(
   "/:identifier/join",
   joinRoom
+);
+
+router.post(
+  "/:identifier/invite-code",
+  regenerateInviteCode
 );
 
 router.post(

@@ -4,53 +4,81 @@ const path = require("path");
 const http = require("http");
 
 const express = require("express");
-const { Server } = require("socket.io");
 
-const connectDB = require("./config/db");
-const createSessionMiddleware = require(
-  "./config/session"
+const {
+  Server,
+} = require("socket.io");
+
+const connectDB = require(
+  "./config/db"
 );
 
-const createAuthRouter = require(
-  "./routes/authRoutes"
+const createSessionMiddleware =
+  require(
+    "./config/session"
+  );
+
+const createAuthRouter =
+  require(
+    "./routes/authRoutes"
+  );
+
+const createPageRouter =
+  require(
+    "./routes/pageRoutes"
+  );
+
+const profileRouter =
+  require(
+    "./routes/profileRoutes"
+  );
+
+const userRouter =
+  require(
+    "./routes/userRoutes"
+  );
+
+const roomRouter =
+  require(
+    "./routes/roomRoutes"
+  );
+
+const socketAuth =
+  require(
+    "./middleware/socketAuth"
+  );
+
+const registerChatSocket =
+  require(
+    "./sockets/chatSocket"
+  );
+
+const User = require(
+  "./models/User"
 );
 
-const createPageRouter = require(
-  "./routes/pageRoutes"
+const Room = require(
+  "./models/Rooms"
 );
 
-const profileRouter = require(
-  "./routes/profileRoutes"
+const Message = require(
+  "./models/Message"
 );
-
-const userRouter = require(
-  "./routes/userRoutes"
-);
-
-const roomRouter = require(
-  "./routes/roomRoutes"
-);
-
-const socketAuth = require(
-  "./middleware/socketAuth"
-);
-
-const registerChatSocket = require(
-  "./sockets/chatSocket"
-);
-
-const User = require("./models/User");
-const Room = require("./models/Rooms");
-const Message = require("./models/Message");
 
 const {
   seedDefaultRooms,
-} = require("./services/roomService");
+} = require(
+  "./services/roomService"
+);
 
 const app = express();
-const server = http.createServer(app);
 
-const io = new Server(server);
+const server =
+  http.createServer(app);
+
+const io = new Server(
+  server
+);
 
 const PORT =
   process.env.PORT || 3000;
@@ -60,14 +88,24 @@ const isProduction =
   "production";
 
 const publicDirectory =
-  path.join(__dirname, "public");
+  path.join(
+    __dirname,
+    "public"
+  );
 
+/*
+ * Reverse-proxy support for production
+ * deployments such as Render.
+ */
 if (isProduction) {
-  app.set("trust proxy", 1);
+  app.set(
+    "trust proxy",
+    1
+  );
 }
 
 /*
- * Request body parsers
+ * Request-body parsers
  */
 app.use(
   express.json({
@@ -83,15 +121,34 @@ app.use(
 );
 
 /*
- * Session configuration
+ * Session middleware
  */
 const sessionMiddleware =
   createSessionMiddleware();
 
-app.use(sessionMiddleware);
+app.use(
+  sessionMiddleware
+);
 
 /*
- * API routes
+ * Health-check route
+ */
+app.get(
+  "/health",
+  (
+    request,
+    response
+  ) => {
+    response
+      .status(200)
+      .json({
+        status: "ok",
+      });
+  }
+);
+
+/*
+ * Application API routes
  */
 app.use(
   "/api/auth",
@@ -114,54 +171,63 @@ app.use(
 );
 
 /*
- * Protected and public pages
- */
-app.use(createPageRouter());
-
-/*
- * Static assets
+ * Public and protected
+ * HTML page routes
  */
 app.use(
-  express.static(publicDirectory)
+  createPageRouter()
 );
 
 /*
- * Share Express sessions
+ * Static browser assets
+ */
+app.use(
+  express.static(
+    publicDirectory
+  )
+);
+
+/*
+ * Share the Express session
  * with Socket.IO.
  */
-io.engine.use(sessionMiddleware);
-
-io.use(socketAuth);
-
-registerChatSocket(io);
+io.engine.use(
+  sessionMiddleware
+);
 
 /*
- * Health check
+ * Authenticate every socket
+ * connection.
  */
-app.get(
-  "/health",
-  (request, response) => {
-    response.status(200).json({
-      status: "ok",
-    });
-  }
+io.use(
+  socketAuth
 );
+
+/*
+ * Register chat socket handlers.
+ */
+registerChatSocket(io);
 
 /*
  * Unknown API route
  */
 app.use(
   "/api",
-  (request, response) => {
-    response.status(404).json({
-      error:
-        "API route not found.",
-    });
+  (
+    request,
+    response
+  ) => {
+    response
+      .status(404)
+      .json({
+        error:
+          "API route not found.",
+      });
   }
 );
 
 /*
- * Global error handler
+ * Global Express error handler
  */
 app.use(
   (
@@ -175,32 +241,40 @@ app.use(
       error
     );
 
-    if (response.headersSent) {
+    if (
+      response.headersSent
+    ) {
       next(error);
       return;
     }
 
     if (
-      request.originalUrl.startsWith(
-        "/api/"
-      )
+      request.originalUrl
+        .startsWith("/api/")
     ) {
-      response.status(500).json({
-        error:
-          "An unexpected server error occurred.",
-      });
+      response
+        .status(500)
+        .json({
+          error:
+            "An unexpected server error occurred.",
+        });
 
       return;
     }
 
-    response.status(500).send(
-      "An unexpected server error occurred."
-    );
+    response
+      .status(500)
+      .send(
+        "An unexpected server error occurred."
+      );
   }
 );
 
 /*
- * Database and server startup
+ * Connect to MongoDB,
+ * initialize indexes,
+ * restore default rooms,
+ * and start the server.
  */
 async function startServer() {
   try {
@@ -216,6 +290,10 @@ async function startServer() {
       PORT,
       "0.0.0.0",
       () => {
+        console.log(
+          "Default rooms are ready."
+        );
+
         console.log(
           `Server running on port ${PORT}`
         );

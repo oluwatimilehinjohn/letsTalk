@@ -1,70 +1,542 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
 
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
-      integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
       crossorigin="anonymous"
     />
 
-    <link rel="stylesheet" href="/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="/css/style.css"
+    />
 
-    <title>Select Room | letsTalk</title>
+    <title>Rooms | letsTalk</title>
   </head>
 
   <body>
-    <div class="join-container">
-      <header class="join-header">
-        <h1>
-          <i class="fas fa-comments"></i>
-          letsTalk
-        </h1>
+    <main class="room-directory-page">
+      <header class="room-directory-header">
+        <a
+          href="/rooms"
+          class="brand-link"
+        >
+          <i class="fas fa-comment-dots"></i>
+
+          <span>letsTalk</span>
+        </a>
+
+        <div class="room-header-actions">
+          <a
+            id="current-user"
+            href="/profile"
+          >
+            Loading...
+          </a>
+
+          <a
+            href="/profile"
+            class="btn btn-secondary"
+          >
+            <i class="fas fa-user"></i>
+
+            <span>Profile</span>
+          </a>
+
+          <button
+            type="button"
+            class="btn btn-danger"
+            id="logout-btn"
+          >
+            <i class="fas fa-sign-out-alt"></i>
+
+            <span>Log Out</span>
+          </button>
+        </div>
       </header>
 
-      <main class="join-main">
-        <h2>
-          Welcome,
-          <a id="current-user" href="/profile"> ... </a>
-        </h2>
+      <section class="room-directory-hero">
+        <div>
+          <p class="room-eyebrow">
+            Community rooms
+          </p>
 
-        <p class="auth-description">Select a room to start chatting.</p>
+          <h1>
+            Find your conversation
+          </h1>
 
-        <form id="room-form">
-          <div class="form-control">
-            <label for="room"> Room </label>
+          <p class="room-hero-description">
+            Join an existing community or create
+            a room of your own.
+          </p>
+        </div>
 
-            <select name="room" id="room">
-              <option value="JavaScript">JavaScript</option>
+        <div class="room-hero-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="open-invite-room-btn"
+          >
+            <i class="fas fa-key"></i>
 
-              <option value="Python">Python</option>
+            Join with code
+          </button>
 
-              <option value="PHP">PHP</option>
+          <button
+            type="button"
+            class="btn"
+            id="open-create-room-btn"
+          >
+            <i class="fas fa-plus"></i>
 
-              <option value="C#">C#</option>
+            Create room
+          </button>
+        </div>
+      </section>
 
-              <option value="Ruby">Ruby</option>
+      <section class="room-directory-toolbar">
+        <label class="room-search">
+          <i class="fas fa-search"></i>
 
-              <option value="Java">Java</option>
-            </select>
+          <input
+            type="search"
+            id="room-search-input"
+            placeholder="Search rooms"
+            autocomplete="off"
+          />
+        </label>
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="refresh-rooms-btn"
+        >
+          <i class="fas fa-sync-alt"></i>
+
+          <span>Refresh</span>
+        </button>
+      </section>
+
+      <p
+        id="room-directory-status"
+        class="room-directory-status"
+      ></p>
+
+      <section
+        id="room-list"
+        class="room-grid"
+        aria-live="polite"
+      ></section>
+
+      <section
+        id="room-empty-state"
+        class="room-empty-state"
+        hidden
+      >
+        <i class="fas fa-comments"></i>
+
+        <h2>No rooms found</h2>
+
+        <p>
+          Try another search or create a new room.
+        </p>
+      </section>
+    </main>
+
+    <!-- Create room modal -->
+
+    <div
+      id="create-room-modal"
+      class="room-modal"
+      hidden
+    >
+      <button
+        type="button"
+        id="room-modal-backdrop"
+        class="room-modal-backdrop"
+        aria-label="Close create room form"
+      ></button>
+
+      <section
+        class="room-modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-room-title"
+      >
+        <header class="room-modal-header">
+          <div>
+            <p class="room-eyebrow">
+              New community
+            </p>
+
+            <h2 id="create-room-title">
+              Create a room
+            </h2>
           </div>
 
-          <button type="submit" class="btn">Join Chat</button>
-          <a href="/profile" class="btn btn-secondary">
-            <i class="fas fa-user"></i>
-            My Profile
-          </a>
-          <button type="button" class="btn btn-danger" id="logout-btn">
-            Log Out
+          <button
+            type="button"
+            id="close-create-room-btn"
+            class="room-modal-close"
+            aria-label="Close create room form"
+          >
+            <i class="fas fa-times"></i>
           </button>
+        </header>
+
+        <form id="create-room-form">
+          <div class="room-modal-body">
+            <div class="form-control">
+              <label for="room-name">
+                Room name
+              </label>
+
+              <input
+                type="text"
+                id="room-name"
+                name="name"
+                minlength="2"
+                maxlength="50"
+                required
+                autocomplete="off"
+                placeholder="Example: React Developers"
+              />
+            </div>
+
+            <div class="form-control">
+              <label for="room-description">
+                Description
+              </label>
+
+              <textarea
+                id="room-description"
+                name="description"
+                maxlength="160"
+                rows="4"
+                placeholder="What will people discuss here?"
+              ></textarea>
+
+              <small id="room-description-counter">
+                0/160
+              </small>
+            </div>
+
+            <div class="room-form-grid">
+              <div class="form-control">
+                <label for="room-visibility">
+                  Visibility
+                </label>
+
+                <select
+                  id="room-visibility"
+                  name="visibility"
+                >
+                  <option value="public">
+                    Public
+                  </option>
+
+                  <option value="private">
+                    Private
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-control">
+                <label for="room-join-policy">
+                  Joining
+                </label>
+
+                <select
+                  id="room-join-policy"
+                  name="joinPolicy"
+                >
+                  <option value="open">
+                    Anyone can join
+                  </option>
+
+                  <option value="invite">
+                    Invitation required
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <p class="room-form-help">
+              Private rooms always require an
+              invitation.
+            </p>
+
+            <p
+              id="create-room-status"
+              class="room-directory-status"
+            ></p>
+          </div>
+
+          <footer class="room-modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="cancel-create-room-btn"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="btn"
+              id="create-room-submit"
+            >
+              <i class="fas fa-plus"></i>
+
+              Create room
+            </button>
+          </footer>
         </form>
-      </main>
+      </section>
     </div>
 
-    <script src="/js/rooms.js"></script>
+    <!-- Join with invite code modal -->
+
+    <div
+      id="join-invite-modal"
+      class="room-modal"
+      hidden
+    >
+      <button
+        type="button"
+        id="join-invite-backdrop"
+        class="room-modal-backdrop"
+        aria-label="Close invite form"
+      ></button>
+
+      <section
+        class="room-modal-dialog room-invite-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="join-invite-title"
+      >
+        <header class="room-modal-header">
+          <div>
+            <p class="room-eyebrow">
+              Private access
+            </p>
+
+            <h2 id="join-invite-title">
+              Join with an invite code
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            id="close-join-invite-btn"
+            class="room-modal-close"
+            aria-label="Close invite form"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </header>
+
+        <form id="join-invite-form">
+          <div class="room-modal-body">
+            <div class="room-invite-icon">
+              <i class="fas fa-key"></i>
+            </div>
+
+            <div class="form-control">
+              <label for="invite-room-identifier">
+                Room name or room link
+              </label>
+
+              <input
+                type="text"
+                id="invite-room-identifier"
+                required
+                autocomplete="off"
+                placeholder="Example: private-developers"
+              />
+            </div>
+
+            <div class="form-control">
+              <label for="invite-room-code">
+                Invite code
+              </label>
+
+              <input
+                type="text"
+                id="invite-room-code"
+                class="invite-code-input"
+                required
+                autocomplete="off"
+                maxlength="32"
+                placeholder="Enter invite code"
+              />
+            </div>
+
+            <p class="room-form-help">
+              Ask the room owner for the room name
+              and invite code.
+            </p>
+
+            <p
+              id="join-invite-status"
+              class="room-directory-status"
+            ></p>
+          </div>
+
+          <footer class="room-modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="cancel-join-invite-btn"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="btn"
+              id="join-invite-submit"
+            >
+              <i class="fas fa-sign-in-alt"></i>
+
+              Join room
+            </button>
+          </footer>
+        </form>
+      </section>
+    </div>
+
+    <!-- Owner invite-code modal -->
+
+    <div
+      id="invite-code-modal"
+      class="room-modal"
+      hidden
+    >
+      <button
+        type="button"
+        id="invite-code-backdrop"
+        class="room-modal-backdrop"
+        aria-label="Close invite code"
+      ></button>
+
+      <section
+        class="room-modal-dialog room-invite-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="invite-code-title"
+      >
+        <header class="room-modal-header">
+          <div>
+            <p class="room-eyebrow">
+              Room invitation
+            </p>
+
+            <h2 id="invite-code-title">
+              Invite people
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            id="close-invite-code-btn"
+            class="room-modal-close"
+            aria-label="Close invite code"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </header>
+
+        <div class="room-modal-body">
+          <div class="room-invite-icon">
+            <i class="fas fa-user-plus"></i>
+          </div>
+
+          <p
+            id="invite-code-description"
+            class="invite-code-description"
+          >
+            Share this code with people you want
+            to invite.
+          </p>
+
+          <div
+            id="invite-code-result"
+            class="invite-code-result"
+            hidden
+          >
+            <span
+              id="invite-code-value"
+              class="invite-code-value"
+            ></span>
+
+            <button
+              type="button"
+              id="copy-invite-code-btn"
+              class="invite-code-copy"
+              aria-label="Copy invite code"
+            >
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+
+          <p
+            id="invite-code-status"
+            class="room-directory-status"
+          ></p>
+
+          <div class="invite-code-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+
+            <p>
+              Generating a new code immediately
+              invalidates the previous code.
+            </p>
+          </div>
+        </div>
+
+        <footer class="room-modal-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="close-invite-code-action-btn"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="btn"
+            id="generate-invite-code-btn"
+          >
+            <i class="fas fa-sync-alt"></i>
+
+            Generate new code
+          </button>
+
+          <button
+            type="button"
+            class="btn"
+            id="enter-invite-room-btn"
+            hidden
+          >
+            Enter room
+          </button>
+        </footer>
+      </section>
+    </div>
+
+    <script
+      type="module"
+      src="/js/rooms/index.js"
+    ></script>
   </body>
 </html>

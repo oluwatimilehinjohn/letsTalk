@@ -34,6 +34,9 @@ export const dom = {
       "refresh-rooms-btn"
     ),
 
+  /*
+   * Create-room modal
+   */
   openModalButton:
     document.getElementById(
       "open-create-room-btn"
@@ -99,6 +102,9 @@ export const dom = {
       "room-join-policy"
     ),
 
+  /*
+   * Join-with-code modal
+   */
   openInviteRoomButton:
     document.getElementById(
       "open-invite-room-btn"
@@ -134,11 +140,6 @@ export const dom = {
       "join-invite-submit"
     ),
 
-  inviteRoomIdentifier:
-    document.getElementById(
-      "invite-room-identifier"
-    ),
-
   inviteRoomCode:
     document.getElementById(
       "invite-room-code"
@@ -149,6 +150,9 @@ export const dom = {
       "join-invite-status"
     ),
 
+  /*
+   * Owner invite-code modal
+   */
   inviteCodeModal:
     document.getElementById(
       "invite-code-modal"
