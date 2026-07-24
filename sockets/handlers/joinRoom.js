@@ -7,12 +7,22 @@ const {
   userLeave,
   getCurrentUser,
   getRoomUsers,
-} = require("../../utils/users");
+} = require(
+  "../../utils/users"
+);
 
 const {
-  ALLOWED_ROOMS,
   MESSAGE_HISTORY_LIMIT,
-} = require("../../config/chat");
+} = require(
+  "../../config/chat"
+);
+
+const {
+  ensureRoomMembership,
+  findRoomByIdentifier,
+} = require(
+  "../../services/roomService"
+);
 
 const {
   MESSAGE_POPULATION,
@@ -30,27 +40,39 @@ const sendWelcomeOnce = require(
   "../services/welcomeService"
 );
 
-function emitRoomUsers(io, room) {
-  io.to(room).emit("roomUsers", {
-    room,
-    users: getRoomUsers(room),
-  });
+function emitRoomUsers(
+  io,
+  roomName
+) {
+  io.to(roomName).emit(
+    "roomUsers",
+    {
+      room: roomName,
+
+      users:
+        getRoomUsers(roomName),
+    }
+  );
 }
 
 function leavePreviousRoom(
   io,
   socket,
   previousUser,
-  newRoom
+  newRoomName
 ) {
   if (
     !previousUser ||
-    previousUser.room === newRoom
+    previousUser.room ===
+      newRoomName
   ) {
     return;
   }
 
-  socket.leave(previousUser.room);
+  socket.leave(
+    previousUser.room
+  );
+
   userLeave(socket.id);
 
   emitRoomUsers(
@@ -62,12 +84,16 @@ function leavePreviousRoom(
 function joinRoom(io, socket) {
   return async ({ room } = {}) => {
     try {
-      const cleanRoom =
-        typeof room === "string"
-          ? room.trim()
-          : "";
+      const authenticatedUser =
+        socket.data
+          .authenticatedUser;
 
-      if (!ALLOWED_ROOMS.has(cleanRoom)) {
+      const roomDocument =
+        await findRoomByIdentifier(
+          room
+        );
+
+      if (!roomDocument) {
         socket.emit(
           "joinError",
           "That room does not exist."
@@ -76,8 +102,13 @@ function joinRoom(io, socket) {
         return;
       }
 
-      const authenticatedUser =
-        socket.data.authenticatedUser;
+      await ensureRoomMembership(
+        roomDocument,
+        authenticatedUser.id
+      );
+
+      const roomName =
+        roomDocument.name;
 
       const previousUser =
         getCurrentUser(socket.id);
@@ -86,7 +117,7 @@ function joinRoom(io, socket) {
         io,
         socket,
         previousUser,
-        cleanRoom
+        roomName
       );
 
       const user = userJoin({
@@ -104,7 +135,7 @@ function joinRoom(io, socket) {
         avatarUrl:
           authenticatedUser.avatarUrl,
 
-        room: cleanRoom,
+        room: roomName,
       });
 
       socket.join(user.room);
@@ -136,16 +167,18 @@ function joinRoom(io, socket) {
         user.room
       );
 
-      emitRoomUsers(io, user.room);
+      emitRoomUsers(
+        io,
+        user.room
+      );
     } catch (error) {
       console.error(
         "Join room error:",
         error
       );
 
-      const user = userLeave(
-        socket.id
-      );
+      const user =
+        userLeave(socket.id);
 
       if (user) {
         socket.leave(user.room);
@@ -153,7 +186,8 @@ function joinRoom(io, socket) {
 
       socket.emit(
         "joinError",
-        "Unable to join this room."
+        error.message ||
+          "Unable to join this room."
       );
     }
   };
