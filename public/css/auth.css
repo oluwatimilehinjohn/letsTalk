@@ -1,0 +1,286 @@
+/* =========================================================
+   LOGIN, REGISTRATION AND ROOM SELECTION
+========================================================= */
+
+.join-container {
+  position: relative;
+
+  width: 100%;
+  max-width: 480px;
+  margin: 6vh auto;
+
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+
+  background: var(--surface);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  box-shadow: var(--shadow-large);
+}
+
+.join-container::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 50%;
+
+  width: 70%;
+  height: 3px;
+
+  transform: translateX(-50%);
+
+  border-radius: 0 0 50px 50px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--secondary),
+      var(--primary),
+      transparent
+    );
+
+  box-shadow:
+    0 0 24px rgba(124, 92, 255, 0.65);
+}
+
+.join-header {
+  position: relative;
+
+  padding: 34px 32px 24px;
+
+  text-align: center;
+}
+
+.join-header::after {
+  content: "";
+
+  display: block;
+
+  width: 48px;
+  height: 3px;
+  margin: 20px auto 0;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--primary),
+      var(--secondary)
+    );
+}
+
+.join-header h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(30px, 7vw, 42px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+}
+
+.join-header h1 i {
+  display: grid;
+  place-items: center;
+
+  width: 52px;
+  height: 52px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+
+  color: white;
+
+  font-size: 23px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary),
+      #9d5cff
+    );
+
+  box-shadow:
+    0 13px 30px rgba(124, 92, 255, 0.32);
+}
+
+.join-main {
+  padding: 18px 38px 40px;
+}
+
+.join-main h2 {
+  margin-bottom: 8px;
+
+  color: var(--text);
+
+  font-family: "Manrope", sans-serif;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+}
+
+.join-main p {
+  margin-bottom: 20px;
+}
+
+.auth-description {
+  margin-bottom: 28px !important;
+
+  color: var(--text-soft);
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.join-main .form-control {
+  margin-bottom: 19px;
+}
+
+.join-main label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: var(--text-soft);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.join-main input[type="text"],
+.join-main input[type="email"],
+.join-main input[type="password"],
+.join-main select {
+  width: 100%;
+  height: 49px;
+  padding: 0 15px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+
+  color: var(--text);
+
+  font-size: 15px;
+
+  background: rgba(7, 10, 24, 0.6);
+
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.join-main input::placeholder {
+  color: var(--text-muted);
+}
+
+.join-main input:hover,
+.join-main select:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.join-main input:focus,
+.join-main select:focus {
+  border-color: var(--primary);
+
+  background: rgba(12, 16, 35, 0.9);
+
+  box-shadow:
+    0 0 0 4px rgba(124, 92, 255, 0.12);
+}
+
+.join-main select {
+  cursor: pointer;
+
+  appearance: none;
+
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent 50%,
+      var(--text-soft) 50%
+    ),
+    linear-gradient(
+      135deg,
+      var(--text-soft) 50%,
+      transparent 50%
+    );
+
+  background-position:
+    calc(100% - 19px) 21px,
+    calc(100% - 14px) 21px;
+
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.join-main select option {
+  color: var(--text);
+
+  background: var(--surface-solid);
+}
+
+.join-main .btn {
+  width: 100%;
+  margin-top: 7px;
+}
+
+.join-main .btn + .btn {
+  margin-top: 12px;
+}
+
+.form-error {
+  display: none;
+
+  margin-bottom: 20px;
+  padding: 12px 14px;
+
+  border: 1px solid rgba(255, 92, 122, 0.25);
+  border-radius: var(--radius-small);
+
+  color: #ffb4c2;
+
+  font-size: 13px;
+  line-height: 1.5;
+
+  background: rgba(255, 92, 122, 0.08);
+}
+
+.auth-link {
+  margin: 24px 0 0 !important;
+
+  color: var(--text-muted);
+
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-link a {
+  color: var(--primary-light);
+
+  font-weight: 700;
+}
+
+.auth-link a:hover {
+  color: var(--secondary);
+}
+
+#current-user {
+  color: var(--secondary);
+
+  font-weight: 700;
+}
+
+#current-user:hover {
+  color: var(--primary-light);
+}
+

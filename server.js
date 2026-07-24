@@ -2,56 +2,72 @@ require("dotenv").config();
 
 const path = require("path");
 const http = require("http");
+
 const express = require("express");
 const { Server } = require("socket.io");
 
 const connectDB = require("./config/db");
-const createSessionMiddleware = require("./config/session");
+const createSessionMiddleware = require(
+  "./config/session"
+);
 
-const createAuthRouter = require("./routes/authRoutes");
-const createPageRouter = require("./routes/pageRoutes");
-const profileRouter = require("./routes/profileRoutes");
+const createAuthRouter = require(
+  "./routes/authRoutes"
+);
+
+const createPageRouter = require(
+  "./routes/pageRoutes"
+);
+
+const profileRouter = require(
+  "./routes/profileRoutes"
+);
+
 const userRouter = require(
   "./routes/userRoutes"
 );
 
-const socketAuth = require("./middleware/socketAuth");
-const registerChatSocket = require("./sockets/chatSocket");
-
-const User = require("./models/User");
-const Message = require("./models/Message");
-
-/*
- * Create the Express application,
- * HTTP server and Socket.IO server.
- */
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-/*
- * General configuration
- */
-const PORT = process.env.PORT || 3000;
-
-const isProduction =
-  process.env.NODE_ENV === "production";
-
-const publicDirectory = path.join(
-  __dirname,
-  "public"
+const roomRouter = require(
+  "./routes/roomRoutes"
 );
 
-/*
- * Render and other hosting platforms
- * usually place the application behind a proxy.
- */
+const socketAuth = require(
+  "./middleware/socketAuth"
+);
+
+const registerChatSocket = require(
+  "./sockets/chatSocket"
+);
+
+const User = require("./models/User");
+const Room = require("./models/Rooms");
+const Message = require("./models/Message");
+
+const {
+  seedDefaultRooms,
+} = require("./services/roomService");
+
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server);
+
+const PORT =
+  process.env.PORT || 3000;
+
+const isProduction =
+  process.env.NODE_ENV ===
+  "production";
+
+const publicDirectory =
+  path.join(__dirname, "public");
+
 if (isProduction) {
   app.set("trust proxy", 1);
 }
 
 /*
- * Parse JSON and form submissions.
+ * Request body parsers
  */
 app.use(
   express.json({
@@ -67,8 +83,7 @@ app.use(
 );
 
 /*
- * Create and register the shared
- * Express session middleware.
+ * Session configuration
  */
 const sessionMiddleware =
   createSessionMiddleware();
@@ -93,66 +108,109 @@ app.use(
   userRouter
 );
 
+app.use(
+  "/api/rooms",
+  roomRouter
+);
+
 /*
- * Protected and public page routes
+ * Protected and public pages
  */
 app.use(createPageRouter());
 
 /*
- * Public CSS, JavaScript and image files
+ * Static assets
  */
 app.use(
   express.static(publicDirectory)
 );
 
 /*
- * Share the Express session with Socket.IO.
+ * Share Express sessions
+ * with Socket.IO.
  */
 io.engine.use(sessionMiddleware);
 
-/*
- * Authenticate every Socket.IO connection.
- */
 io.use(socketAuth);
 
-/*
- * Register room and message socket events.
- */
 registerChatSocket(io);
 
 /*
- * Optional health-check endpoint.
+ * Health check
  */
-app.get("/health", (request, response) => {
-  response.status(200).json({
-    status: "ok",
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-  });
-});
+app.get(
+  "/health",
+  (request, response) => {
+    response.status(200).json({
+      status: "ok",
+    });
+  }
+);
 
 /*
- * Handle unknown API endpoints.
+ * Unknown API route
  */
-app.use("/api", (request, response) => {
-  response.status(404).json({
-    error: "API endpoint not found.",
-  });
-});
+app.use(
+  "/api",
+  (request, response) => {
+    response.status(404).json({
+      error:
+        "API route not found.",
+    });
+  }
+);
 
 /*
- * Start the application only after
- * MongoDB connects successfully.
+ * Global error handler
+ */
+app.use(
+  (
+    error,
+    request,
+    response,
+    next
+  ) => {
+    console.error(
+      "Unhandled application error:",
+      error
+    );
+
+    if (response.headersSent) {
+      next(error);
+      return;
+    }
+
+    if (
+      request.originalUrl.startsWith(
+        "/api/"
+      )
+    ) {
+      response.status(500).json({
+        error:
+          "An unexpected server error occurred.",
+      });
+
+      return;
+    }
+
+    response.status(500).send(
+      "An unexpected server error occurred."
+    );
+  }
+);
+
+/*
+ * Database and server startup
  */
 async function startServer() {
   try {
     await connectDB();
 
-    /*
-     * Ensure MongoDB indexes are ready.
-     */
     await User.init();
+    await Room.init();
     await Message.init();
+
+    await seedDefaultRooms();
 
     server.listen(
       PORT,
