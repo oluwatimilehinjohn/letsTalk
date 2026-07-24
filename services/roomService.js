@@ -1,10 +1,16 @@
-const mongoose = require("mongoose");
+const mongoose = require(
+  "mongoose"
+);
 
-const Room = require("../models/Rooms");
+const Room = require(
+  "../models/Rooms"
+);
 
 const {
   DEFAULT_ROOMS,
-} = require("../config/chat");
+} = require(
+  "../config/chat"
+);
 
 function createRoomSlug(name) {
   return String(name || "")
@@ -15,9 +21,18 @@ function createRoomSlug(name) {
     )
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    .replace(
+      /[^a-z0-9\s-]/g,
+      ""
+    )
+    .replace(
+      /[\s_-]+/g,
+      "-"
+    )
+    .replace(
+      /^-+|-+$/g,
+      ""
+    )
     .slice(0, 60);
 }
 
@@ -52,13 +67,25 @@ function getRoomMember(
   room,
   userId
 ) {
+  if (
+    !room ||
+    !Array.isArray(room.members)
+  ) {
+    return null;
+  }
+
   const normalizedUserId =
     String(userId);
 
-  return room.members.find(
-    (member) =>
-      member.userId.toString() ===
-      normalizedUserId
+  return (
+    room.members.find(
+      (member) => {
+        return (
+          String(member.userId) ===
+          normalizedUserId
+        );
+      }
+    ) || null
   );
 }
 
@@ -73,29 +100,39 @@ function canViewRoom(
   }
 
   return Boolean(
-    getRoomMember(room, userId)
+    getRoomMember(
+      room,
+      userId
+    )
   );
 }
 
-async function findRoomByIdentifier(
-  identifier
+function findRoomByIdentifier(
+  identifier,
+  {
+    includeInviteCodeHash =
+      false,
+  } = {}
 ) {
   const cleanIdentifier =
-    String(identifier || "").trim();
+    String(identifier || "")
+      .trim();
 
   if (!cleanIdentifier) {
     return null;
   }
 
-  const normalized =
+  const normalizedIdentifier =
     cleanIdentifier.toLowerCase();
 
   const conditions = [
     {
-      slug: normalized,
+      slug:
+        normalizedIdentifier,
     },
     {
-      nameLower: normalized,
+      nameLower:
+        normalizedIdentifier,
     },
   ];
 
@@ -109,11 +146,22 @@ async function findRoomByIdentifier(
     });
   }
 
-  return Room.findOne({
-    isArchived: false,
+  const query =
+    Room.findOne({
+      isArchived: false,
 
-    $or: conditions,
-  });
+      $or: conditions,
+    });
+
+  if (
+    includeInviteCodeHash
+  ) {
+    query.select(
+      "+inviteCodeHash"
+    );
+  }
+
+  return query;
 }
 
 async function ensureRoomMembership(
@@ -121,15 +169,20 @@ async function ensureRoomMembership(
   userId
 ) {
   const existingMember =
-    getRoomMember(room, userId);
+    getRoomMember(
+      room,
+      userId
+    );
 
   if (existingMember) {
     return room;
   }
 
   const canJoin =
-    room.visibility === "public" &&
-    room.joinPolicy === "open";
+    room.visibility ===
+      "public" &&
+    room.joinPolicy ===
+      "open";
 
   if (!canJoin) {
     throw new Error(
@@ -150,8 +203,11 @@ async function ensureRoomMembership(
         $push: {
           members: {
             userId,
+
             role: "member",
-            joinedAt: new Date(),
+
+            joinedAt:
+              new Date(),
           },
         },
       },
@@ -164,7 +220,9 @@ async function ensureRoomMembership(
     return updatedRoom;
   }
 
-  return Room.findById(room._id);
+  return Room.findById(
+    room._id
+  );
 }
 
 function serializeRoom(
@@ -172,14 +230,20 @@ function serializeRoom(
   userId
 ) {
   const member =
-    getRoomMember(room, userId);
+    getRoomMember(
+      room,
+      userId
+    );
 
   return {
-    id: room._id.toString(),
+    id:
+      room._id.toString(),
 
-    name: room.name,
+    name:
+      room.name,
 
-    slug: room.slug,
+    slug:
+      room.slug,
 
     description:
       room.description || "",
@@ -200,7 +264,11 @@ function serializeRoom(
       member?.role || null,
 
     memberCount:
-      room.members.length,
+      Array.isArray(
+        room.members
+      )
+        ? room.members.length
+        : 0,
 
     createdAt:
       room.createdAt,
@@ -211,56 +279,66 @@ function serializeRoom(
 }
 
 async function seedDefaultRooms() {
-  const operations =
-    DEFAULT_ROOMS.map((room) => ({
-      updateOne: {
-        filter: {
-          nameLower:
-            room.name.toLowerCase(),
-        },
+  for (
+    const defaultRoom
+    of DEFAULT_ROOMS
+  ) {
+    const nameLower =
+      defaultRoom.name
+        .toLowerCase();
 
-        update: {
-          $setOnInsert: {
-            name: room.name,
-
-            nameLower:
-              room.name.toLowerCase(),
-
-            slug:
-              createRoomSlug(
-                room.name
-              ),
-
-            description:
-              room.description,
-
-            visibility: "public",
-
-            joinPolicy: "open",
-
-            isSystem: true,
-
-            isArchived: false,
-
-            members: [],
-          },
-        },
-
-        upsert: true,
+    await Room.updateOne(
+      {
+        nameLower,
       },
-    }));
+      {
+        $set: {
+          name:
+            defaultRoom.name,
 
-  if (!operations.length) {
-    return;
+          nameLower,
+
+          slug:
+            defaultRoom.slug,
+
+          description:
+            defaultRoom.description,
+
+          visibility:
+            "public",
+
+          joinPolicy:
+            "open",
+
+          isSystem:
+            true,
+
+          isArchived:
+            false,
+        },
+
+        $setOnInsert: {
+          createdBy:
+            null,
+
+          members:
+            [],
+        },
+      },
+      {
+        upsert: true,
+      }
+    );
   }
 
-  await Room.bulkWrite(
-    operations
+  console.log(
+    "Default rooms are ready."
   );
 }
 
 module.exports = {
   canViewRoom,
+  createRoomSlug,
   createUniqueRoomSlug,
   ensureRoomMembership,
   findRoomByIdentifier,

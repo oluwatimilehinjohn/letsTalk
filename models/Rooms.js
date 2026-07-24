@@ -4,23 +4,30 @@ const roomMemberSchema =
   new mongoose.Schema(
     {
       userId: {
-        type: mongoose.Schema.Types.ObjectId,
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
         ref: "User",
+
         required: true,
       },
 
       role: {
         type: String,
+
         enum: [
           "owner",
           "admin",
           "member",
         ],
+
         default: "member",
       },
 
       joinedAt: {
         type: Date,
+
         default: Date.now,
       },
     },
@@ -34,71 +41,113 @@ const roomSchema =
     {
       name: {
         type: String,
+
         required: true,
+
         trim: true,
+
         minlength: 2,
+
         maxlength: 50,
       },
 
       nameLower: {
         type: String,
+
         required: true,
+
         unique: true,
+
         index: true,
       },
 
       slug: {
         type: String,
+
         required: true,
+
         unique: true,
+
         index: true,
       },
 
       description: {
         type: String,
+
         trim: true,
+
         maxlength: 160,
+
         default: "",
       },
 
       visibility: {
         type: String,
+
         enum: [
           "public",
           "private",
         ],
+
         default: "public",
+
         index: true,
       },
 
       joinPolicy: {
         type: String,
+
         enum: [
           "open",
           "invite",
         ],
+
         default: "open",
       },
 
+      inviteCodeHash: {
+        type: String,
+
+        default: null,
+
+        select: false,
+
+        index: true,
+      },
+
+      inviteCodeCreatedAt: {
+        type: Date,
+
+        default: null,
+      },
+
       createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
         ref: "User",
+
         default: null,
       },
 
       members: {
         type: [roomMemberSchema],
+
         default: [],
       },
 
       isSystem: {
         type: Boolean,
+
         default: false,
       },
 
       isArchived: {
         type: Boolean,
+
         default: false,
+
         index: true,
       },
     },
@@ -119,16 +168,16 @@ roomSchema.index({
 
 roomSchema.pre(
   "validate",
-  function prepareRoom(next) {
-    if (this.name) {
-      this.name =
-        this.name.trim();
-
-      this.nameLower =
-        this.name.toLowerCase();
+  function prepareRoom() {
+    if (!this.name) {
+      return;
     }
 
-    next();
+    this.name =
+      this.name.trim();
+
+    this.nameLower =
+      this.name.toLowerCase();
   }
 );
 
