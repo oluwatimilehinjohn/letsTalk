@@ -1,27 +1,28 @@
+const USER_FIELDS =
+  "username displayName avatarUrl";
+
 const MESSAGE_POPULATION = [
   {
     path: "userId",
-    select: "username displayName avatarUrl",
+
+    select: USER_FIELDS,
   },
+
   {
     path: "replyTo",
-    select: "username text userId createdAt",
+
+    select:
+      "text userId createdAt",
+
     populate: {
       path: "userId",
-      select: "username displayName avatarUrl",
+
+      select: USER_FIELDS,
     },
   },
 ];
 
-async function populateMessage(message) {
-  await message.populate(
-    MESSAGE_POPULATION
-  );
-
-  return message;
-}
-
 module.exports = {
   MESSAGE_POPULATION,
-  populateMessage,
+  USER_FIELDS,
 };

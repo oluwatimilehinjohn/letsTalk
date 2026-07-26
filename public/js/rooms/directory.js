@@ -4,6 +4,7 @@ import { state } from "./state.js";
 import {
   fetchRooms,
   joinRoom,
+  leaveRoom,
 } from "./api.js";
 
 import {
@@ -16,9 +17,12 @@ import {
   openOwnerInviteModal,
 } from "./inviteRoom.js";
 
+const CURRENT_ROOM_KEY =
+  "letstalk.currentRoom";
+
 function enterRoom(slug) {
   sessionStorage.setItem(
-    "letstalk.currentRoom",
+    CURRENT_ROOM_KEY,
     slug
   );
 
@@ -29,7 +33,8 @@ function enterRoom(slug) {
 }
 
 export async function loadRooms() {
-  dom.refreshButton.disabled = true;
+  dom.refreshButton.disabled =
+    true;
 
   setDirectoryStatus(
     "Loading rooms..."
@@ -64,7 +69,8 @@ async function handleOpenRoomJoin(
 
   button.disabled = true;
 
-  button.innerText = "Joining...";
+  button.innerText =
+    "Joining...";
 
   try {
     await joinRoom(slug);
@@ -75,6 +81,61 @@ async function handleOpenRoomJoin(
 
     button.innerHTML =
       '<i class="fas fa-sign-in-alt"></i><span>Join</span>';
+
+    setDirectoryStatus(
+      error.message,
+      "error"
+    );
+  }
+}
+
+async function handleLeaveRoom(
+  button
+) {
+  const slug =
+    button.dataset.roomSlug;
+
+  const roomName =
+    button.dataset.roomName;
+
+  const confirmed =
+    window.confirm(
+      `Leave ${roomName}?`
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  button.disabled = true;
+
+  button.innerText =
+    "Leaving...";
+
+  try {
+    await leaveRoom(slug);
+
+    const savedRoom =
+      sessionStorage.getItem(
+        CURRENT_ROOM_KEY
+      );
+
+    if (savedRoom === slug) {
+      sessionStorage.removeItem(
+        CURRENT_ROOM_KEY
+      );
+    }
+
+    await loadRooms();
+
+    setDirectoryStatus(
+      `You left ${roomName}.`
+    );
+  } catch (error) {
+    button.disabled = false;
+
+    button.innerHTML =
+      '<i class="fas fa-sign-out-alt"></i><span>Leave</span>';
 
     setDirectoryStatus(
       error.message,
@@ -111,10 +172,7 @@ async function handleRoomAction(
       break;
 
     case "join-invite":
-      openJoinInviteModal({
-        identifier: slug,
-        roomName,
-      });
+      openJoinInviteModal();
       break;
 
     case "manage-invite":
@@ -122,6 +180,19 @@ async function handleRoomAction(
         slug,
         name: roomName,
       });
+      break;
+
+    case "settings":
+      window.location.href =
+        `/rooms/${encodeURIComponent(
+          slug
+        )}/settings`;
+      break;
+
+    case "leave":
+      await handleLeaveRoom(
+        button
+      );
       break;
 
     default:

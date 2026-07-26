@@ -15,32 +15,43 @@ const disconnectUser = require(
 );
 
 function registerChatSocket(io) {
-  io.on("connection", (socket) => {
-    const sessionId =
-      socket.request.session.id;
+  io.on(
+    "connection",
+    (socket) => {
+      socket.on(
+        "joinRoom",
+        joinRoom(
+          io,
+          socket
+        )
+      );
 
-    socket.join(sessionId);
+      socket.on(
+        "chatMessage",
+        sendMessage(
+          io,
+          socket
+        )
+      );
 
-    socket.on(
-      "joinRoom",
-      joinRoom(io, socket)
-    );
+      socket.on(
+        "reactToMessage",
+        reactToMessage(
+          io,
+          socket
+        )
+      );
 
-    socket.on(
-      "chatMessage",
-      sendMessage(io, socket)
-    );
-
-    socket.on(
-      "message:react",
-      reactToMessage(io, socket)
-    );
-
-    socket.on(
-      "disconnect",
-      disconnectUser(io, socket)
-    );
-  });
+      socket.on(
+        "disconnect",
+        disconnectUser(
+          io,
+          socket
+        )
+      );
+    }
+  );
 }
 
-module.exports = registerChatSocket;
+module.exports =
+  registerChatSocket;

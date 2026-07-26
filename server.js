@@ -43,6 +43,16 @@ const roomRouter =
     "./routes/roomRoutes"
   );
 
+const roomManagementRouter =
+  require(
+    "./routes/roomManagementRoutes"
+  );
+
+const roomSettingsPageRouter =
+  require(
+    "./routes/roomSettingsPageRoutes"
+  );
+
 const socketAuth =
   require(
     "./middleware/socketAuth"
@@ -76,9 +86,8 @@ const app = express();
 const server =
   http.createServer(app);
 
-const io = new Server(
-  server
-);
+const io =
+  new Server(server);
 
 const PORT =
   process.env.PORT || 3000;
@@ -93,10 +102,6 @@ const publicDirectory =
     "public"
   );
 
-/*
- * Reverse-proxy support for production
- * deployments such as Render.
- */
 if (isProduction) {
   app.set(
     "trust proxy",
@@ -104,9 +109,6 @@ if (isProduction) {
   );
 }
 
-/*
- * Request-body parsers
- */
 app.use(
   express.json({
     limit: "10kb",
@@ -120,9 +122,6 @@ app.use(
   })
 );
 
-/*
- * Session middleware
- */
 const sessionMiddleware =
   createSessionMiddleware();
 
@@ -130,26 +129,18 @@ app.use(
   sessionMiddleware
 );
 
-/*
- * Health-check route
- */
 app.get(
   "/health",
   (
     request,
     response
   ) => {
-    response
-      .status(200)
-      .json({
-        status: "ok",
-      });
+    response.status(200).json({
+      status: "ok",
+    });
   }
 );
 
-/*
- * Application API routes
- */
 app.use(
   "/api/auth",
   createAuthRouter(io)
@@ -170,65 +161,52 @@ app.use(
   roomRouter
 );
 
+app.use(
+  "/api/rooms",
+  roomManagementRouter
+);
+
 /*
- * Public and protected
- * HTML page routes
+ * Register this before the general
+ * page router.
  */
+app.use(
+  roomSettingsPageRouter
+);
+
 app.use(
   createPageRouter()
 );
 
-/*
- * Static browser assets
- */
 app.use(
   express.static(
     publicDirectory
   )
 );
 
-/*
- * Share the Express session
- * with Socket.IO.
- */
 io.engine.use(
   sessionMiddleware
 );
 
-/*
- * Authenticate every socket
- * connection.
- */
 io.use(
   socketAuth
 );
 
-/*
- * Register chat socket handlers.
- */
 registerChatSocket(io);
 
-/*
- * Unknown API route
- */
 app.use(
   "/api",
   (
     request,
     response
   ) => {
-    response
-      .status(404)
-      .json({
-        error:
-          "API route not found.",
-      });
+    response.status(404).json({
+      error:
+        "API route not found.",
+    });
   }
 );
 
-/*
- * Global Express error handler
- */
 app.use(
   (
     error,
@@ -241,41 +219,30 @@ app.use(
       error
     );
 
-    if (
-      response.headersSent
-    ) {
+    if (response.headersSent) {
       next(error);
       return;
     }
 
     if (
-      request.originalUrl
-        .startsWith("/api/")
+      request.originalUrl.startsWith(
+        "/api/"
+      )
     ) {
-      response
-        .status(500)
-        .json({
-          error:
-            "An unexpected server error occurred.",
-        });
+      response.status(500).json({
+        error:
+          "An unexpected server error occurred.",
+      });
 
       return;
     }
 
-    response
-      .status(500)
-      .send(
-        "An unexpected server error occurred."
-      );
+    response.status(500).send(
+      "An unexpected server error occurred."
+    );
   }
 );
 
-/*
- * Connect to MongoDB,
- * initialize indexes,
- * restore default rooms,
- * and start the server.
- */
 async function startServer() {
   try {
     await connectDB();

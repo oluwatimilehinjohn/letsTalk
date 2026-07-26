@@ -29,52 +29,107 @@ export async function fetchCurrentUser() {
   return readResponse(response);
 }
 
-export async function fetchRooms() {
+export async function fetchRoom(
+  identifier
+) {
   const response = await fetch(
-    "/api/rooms"
+    `/api/rooms/${encodeURIComponent(
+      identifier
+    )}`
   );
 
   return readResponse(response);
 }
 
-export async function createRoom(room) {
+export async function updateRoom(
+  identifier,
+  updates
+) {
   const response = await fetch(
-    "/api/rooms",
+    `/api/rooms/${encodeURIComponent(
+      identifier
+    )}`,
     {
-      method: "POST",
+      method: "PATCH",
 
       headers: {
         "Content-Type":
           "application/json",
       },
 
-      body: JSON.stringify(room),
+      body: JSON.stringify(updates),
     }
   );
 
   return readResponse(response);
 }
 
-export async function joinRoom(
+export async function fetchMembers(
   identifier
 ) {
   const response = await fetch(
     `/api/rooms/${encodeURIComponent(
       identifier
-    )}/join`,
+    )}/members`
+  );
+
+  return readResponse(response);
+}
+
+export async function updateMemberRole(
+  identifier,
+  userId,
+  role
+) {
+  const response = await fetch(
+    `/api/rooms/${encodeURIComponent(
+      identifier
+    )}/members/${encodeURIComponent(
+      userId
+    )}/role`,
     {
-      method: "POST",
+      method: "PATCH",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+
+      body: JSON.stringify({
+        role,
+      }),
     }
   );
 
   return readResponse(response);
 }
 
-export async function joinRoomWithCode(
-  inviteCode
+export async function removeMember(
+  identifier,
+  userId
 ) {
   const response = await fetch(
-    "/api/rooms/join-with-code",
+    `/api/rooms/${encodeURIComponent(
+      identifier
+    )}/members/${encodeURIComponent(
+      userId
+    )}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  return readResponse(response);
+}
+
+export async function transferOwnership(
+  identifier,
+  userId
+) {
+  const response = await fetch(
+    `/api/rooms/${encodeURIComponent(
+      identifier
+    )}/transfer-ownership`,
     {
       method: "POST",
 
@@ -84,7 +139,7 @@ export async function joinRoomWithCode(
       },
 
       body: JSON.stringify({
-        inviteCode,
+        userId,
       }),
     }
   );
@@ -92,7 +147,7 @@ export async function joinRoomWithCode(
   return readResponse(response);
 }
 
-export async function regenerateInviteCode(
+export async function generateInviteCode(
   identifier
 ) {
   const response = await fetch(
@@ -116,6 +171,21 @@ export async function leaveRoom(
     )}/leave`,
     {
       method: "POST",
+    }
+  );
+
+  return readResponse(response);
+}
+
+export async function archiveRoom(
+  identifier
+) {
+  const response = await fetch(
+    `/api/rooms/${encodeURIComponent(
+      identifier
+    )}`,
+    {
+      method: "DELETE",
     }
   );
 

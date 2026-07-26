@@ -49,16 +49,14 @@ function createRoomHeader(room) {
   const header =
     document.createElement("div");
 
-  header.classList.add(
-    "room-card-header"
-  );
+  header.className =
+    "room-card-header";
 
   const icon =
     document.createElement("span");
 
-  icon.classList.add(
-    "room-card-icon"
-  );
+  icon.className =
+    "room-card-icon";
 
   icon.innerHTML =
     room.visibility === "private"
@@ -68,9 +66,8 @@ function createRoomHeader(room) {
   const badges =
     document.createElement("div");
 
-  badges.classList.add(
-    "room-card-badges"
-  );
+  badges.className =
+    "room-card-badges";
 
   badges.appendChild(
     createBadge(
@@ -90,11 +87,11 @@ function createRoomHeader(room) {
     );
   }
 
-  if (room.role === "owner") {
+  if (room.role) {
     badges.appendChild(
       createBadge(
-        "Owner",
-        "room-badge-owner"
+        room.role,
+        `room-badge-${room.role}`
       )
     );
   }
@@ -109,9 +106,8 @@ function createRoomInformation(room) {
   const content =
     document.createElement("div");
 
-  content.classList.add(
-    "room-card-content"
-  );
+  content.className =
+    "room-card-content";
 
   const title =
     document.createElement("h2");
@@ -143,13 +139,21 @@ function createActionButton({
     document.createElement("button");
 
   button.type = "button";
-  button.className = className;
-  button.dataset.action = action;
+
+  button.className =
+    className;
+
+  button.dataset.action =
+    action;
+
   button.dataset.roomSlug =
     room.slug;
+
   button.dataset.roomName =
     room.name;
-  button.disabled = disabled;
+
+  button.disabled =
+    disabled;
 
   button.innerHTML =
     `<i class="${icon}"></i>
@@ -162,11 +166,30 @@ function createRoomActions(room) {
   const actions =
     document.createElement("div");
 
-  actions.classList.add(
-    "room-card-actions"
-  );
+  actions.className =
+    "room-card-actions";
 
   if (room.isMember) {
+    if (
+      room.role === "owner" ||
+      room.role === "admin"
+    ) {
+      actions.appendChild(
+        createActionButton({
+          className:
+            "btn btn-secondary room-icon-button",
+
+          action: "settings",
+
+          room,
+
+          icon: "fas fa-cog",
+
+          label: "Settings",
+        })
+      );
+    }
+
     if (
       room.role === "owner" &&
       room.joinPolicy === "invite"
@@ -176,13 +199,34 @@ function createRoomActions(room) {
           className:
             "btn btn-secondary room-icon-button",
 
-          action: "manage-invite",
+          action:
+            "manage-invite",
 
           room,
 
           icon: "fas fa-key",
 
           label: "Invite",
+        })
+      );
+    }
+
+    if (
+      room.role !== "owner"
+    ) {
+      actions.appendChild(
+        createActionButton({
+          className:
+            "btn btn-danger room-icon-button",
+
+          action: "leave",
+
+          room,
+
+          icon:
+            "fas fa-sign-out-alt",
+
+          label: "Leave",
         })
       );
     }
@@ -195,7 +239,8 @@ function createRoomActions(room) {
 
         room,
 
-        icon: "fas fa-arrow-right",
+        icon:
+          "fas fa-arrow-right",
 
         label: "Enter",
       })
@@ -217,7 +262,8 @@ function createRoomActions(room) {
 
         room,
 
-        icon: "fas fa-sign-in-alt",
+        icon:
+          "fas fa-sign-in-alt",
 
         label: "Join",
       })
@@ -271,21 +317,23 @@ function createRoomFooter(room) {
   const footer =
     document.createElement("div");
 
-  footer.classList.add(
-    "room-card-footer"
-  );
+  footer.className =
+    "room-card-footer";
 
   const members =
     document.createElement("span");
 
-  members.classList.add(
-    "room-member-count"
-  );
+  members.className =
+    "room-member-count";
 
   members.innerHTML =
     `<i class="fas fa-users"></i>
     ${room.memberCount}
-    member${room.memberCount === 1 ? "" : "s"}`;
+    member${
+      room.memberCount === 1
+        ? ""
+        : "s"
+    }`;
 
   footer.appendChild(members);
 
@@ -300,9 +348,8 @@ function createRoomCard(room) {
   const card =
     document.createElement("article");
 
-  card.classList.add(
-    "room-card"
-  );
+  card.className =
+    "room-card";
 
   if (room.isMember) {
     card.classList.add(
@@ -337,7 +384,8 @@ export function setDirectoryStatus(
 }
 
 export function renderRooms() {
-  const rooms = getVisibleRooms();
+  const rooms =
+    getVisibleRooms();
 
   dom.roomList.innerHTML = "";
 

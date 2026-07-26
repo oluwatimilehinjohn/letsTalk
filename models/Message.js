@@ -5,14 +5,18 @@ const reactionSchema = new mongoose.Schema(
     emoji: {
       type: String,
       required: true,
+      trim: true,
     },
 
-    userIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    userIds: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      default: [],
+    },
   },
   {
     _id: false,
@@ -21,33 +25,24 @@ const reactionSchema = new mongoose.Schema(
 
 const messageSchema = new mongoose.Schema(
   {
-    userId: {
+    roomId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
+      ref: "Room",
+      required: true,
       index: true,
     },
 
-    username: {
-      type: String,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      trim: true,
-      maxlength: 40,
-    },
-
-    room: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 50,
       index: true,
     },
 
     text: {
       type: String,
       required: true,
-      trim: true,
-      maxlength: 1000,
+      maxlength: 4000,
     },
 
     replyTo: {
@@ -61,6 +56,16 @@ const messageSchema = new mongoose.Schema(
       type: [reactionSchema],
       default: [],
     },
+
+    isEdited: {
+      type: Boolean,
+      default: false,
+    },
+
+    editedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -68,8 +73,13 @@ const messageSchema = new mongoose.Schema(
 );
 
 messageSchema.index({
-  room: 1,
+  roomId: 1,
   createdAt: -1,
+});
+
+messageSchema.index({
+  roomId: 1,
+  _id: 1,
 });
 
 module.exports = mongoose.model(
