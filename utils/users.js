@@ -27,6 +27,10 @@ function userJoin({
   const user = {
     socketId,
 
+    /*
+     * Compatibility alias for older
+     * frontend and socket code.
+     */
     id: socketId,
 
     userId:
@@ -55,8 +59,8 @@ function userJoin({
       normalizeValue(roomChannel),
 
     /*
-     * Compatibility alias for older code that
-     * still reads user.room.
+     * Compatibility alias for older
+     * code that reads user.room.
      */
     room:
       normalizeValue(roomName),
@@ -95,11 +99,16 @@ function matchesRoom(
   const identifier =
     normalizeValue(roomIdentifier);
 
+  if (!identifier) {
+    return false;
+  }
+
   return [
     user.roomId,
     user.roomName,
     user.roomSlug,
     user.roomChannel,
+    user.room,
   ].includes(identifier);
 }
 
@@ -113,7 +122,8 @@ function getRoomUsers(roomIdentifier) {
     })
     .map((user) => {
       return {
-        id: user.socketId,
+        id:
+          user.socketId,
 
         socketId:
           user.socketId,
@@ -141,13 +151,68 @@ function getRoomUsers(roomIdentifier) {
 
         roomSlug:
           user.roomSlug,
+
+        roomChannel:
+          user.roomChannel,
       };
     });
+}
+
+/*
+ * Returns true when the user still has
+ * at least one active socket connection.
+ *
+ * The optional excludedSocketId is useful
+ * while processing a disconnect event.
+ */
+function isUserOnline(
+  userId,
+  excludedSocketId = null
+) {
+  const normalizedUserId =
+    normalizeValue(userId);
+
+  if (!normalizedUserId) {
+    return false;
+  }
+
+  return users.some((user) => {
+    if (
+      excludedSocketId &&
+      user.socketId ===
+        excludedSocketId
+    ) {
+      return false;
+    }
+
+    return (
+      user.userId ===
+      normalizedUserId
+    );
+  });
+}
+
+function getUserSockets(userId) {
+  const normalizedUserId =
+    normalizeValue(userId);
+
+  if (!normalizedUserId) {
+    return [];
+  }
+
+  return users.filter((user) => {
+    return (
+      user.userId ===
+      normalizedUserId
+    );
+  });
 }
 
 module.exports = {
   getCurrentUser,
   getRoomUsers,
+  getUserSockets,
+  isUserOnline,
   userJoin,
   userLeave,
 };
