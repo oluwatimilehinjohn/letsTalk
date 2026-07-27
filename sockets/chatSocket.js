@@ -14,10 +14,30 @@ const disconnectUser = require(
   "./handlers/disconnectUser"
 );
 
+const {
+  getUserChannel,
+} = require(
+  "./services/userChannel"
+);
+
 function registerChatSocket(io) {
   io.on(
     "connection",
     (socket) => {
+      const authenticatedUser =
+        socket.data
+          .authenticatedUser;
+
+      if (
+        authenticatedUser?.id
+      ) {
+        socket.join(
+          getUserChannel(
+            authenticatedUser.id
+          )
+        );
+      }
+
       socket.on(
         "joinRoom",
         joinRoom(

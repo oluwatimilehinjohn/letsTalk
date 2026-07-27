@@ -11,4 +11,11 @@
 @import url("./responsive.css");
 @import url("./cropper.css");
 @import url("./message-actions.css");
+@import url("./unread.css");
 @import url("./responsive-actions.css");
+
+/*
+ * Must remain last so the monochrome
+ * design overrides old coloured values.
+ */
+@import url("./monochrome-theme.css");

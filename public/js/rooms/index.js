@@ -16,10 +16,15 @@ import {
   loadCurrentUser,
 } from "./navigation.js";
 
+import {
+  bindUnreadUpdates,
+} from "./unread.js";
+
 bindDirectory();
 bindCreateRoom();
 bindInviteRoom();
 bindNavigation();
+bindUnreadUpdates();
 
 async function startRoomDirectory() {
   try {

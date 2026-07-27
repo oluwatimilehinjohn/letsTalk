@@ -13,6 +13,10 @@ import {
 } from "./view.js";
 
 import {
+  loadUnreadSummary,
+} from "./unread.js";
+
+import {
   openJoinInviteModal,
   openOwnerInviteModal,
 } from "./inviteRoom.js";
@@ -47,6 +51,8 @@ export async function loadRooms() {
     state.rooms =
       result.rooms || [];
 
+    await loadUnreadSummary();
+
     renderRooms();
 
     setDirectoryStatus("");
@@ -68,9 +74,7 @@ async function handleOpenRoomJoin(
     button.dataset.roomSlug;
 
   button.disabled = true;
-
-  button.innerText =
-    "Joining...";
+  button.innerText = "Joining...";
 
   try {
     await joinRoom(slug);
@@ -108,9 +112,7 @@ async function handleLeaveRoom(
   }
 
   button.disabled = true;
-
-  button.innerText =
-    "Leaving...";
+  button.innerText = "Leaving...";
 
   try {
     await leaveRoom(slug);

@@ -1,0 +1,1111 @@
+/* =========================================================
+   MONOCHROME DESIGN SYSTEM
+========================================================= */
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  color: var(--text);
+
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      rgba(255, 255, 255, 0.09),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 94% 96%,
+      rgba(255, 255, 255, 0.045),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      #020202 0%,
+      #090909 48%,
+      #000000 100%
+    );
+}
+
+body::before {
+  content: "";
+
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.22;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    );
+
+  background-size: 42px 42px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black,
+      transparent 88%
+    );
+}
+
+::selection {
+  color: #000000;
+
+  background: #ffffff;
+}
+
+* {
+  scrollbar-color:
+    rgba(255, 255, 255, 0.24)
+    rgba(255, 255, 255, 0.035);
+}
+
+*::-webkit-scrollbar-track {
+  background:
+    rgba(255, 255, 255, 0.025);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 20px;
+
+  background:
+    rgba(255, 255, 255, 0.2);
+
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background:
+    rgba(255, 255, 255, 0.38);
+
+  background-clip: padding-box;
+}
+
+a {
+  color: var(--text-soft);
+}
+
+a:hover {
+  color: #ffffff;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.btn {
+  border-color: #ffffff;
+
+  color: #050505;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #dedede 100%
+    );
+
+  box-shadow:
+    0 10px 28px
+    rgba(255, 255, 255, 0.1),
+    0 16px 42px
+    rgba(0, 0, 0, 0.35);
+}
+
+.btn:hover {
+  color: #000000;
+
+  border-color: #ffffff;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #cfcfcf
+    );
+
+  box-shadow:
+    0 14px 34px
+    rgba(255, 255, 255, 0.14),
+    0 20px 48px
+    rgba(0, 0, 0, 0.45);
+}
+
+.btn:focus-visible {
+  border-color: #ffffff;
+
+  box-shadow:
+    var(--focus-ring),
+    0 16px 40px
+    rgba(0, 0, 0, 0.5);
+}
+
+.btn-secondary {
+  color: var(--text-soft);
+
+  border-color:
+    rgba(255, 255, 255, 0.14);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0.025)
+    );
+
+  box-shadow: none;
+}
+
+.btn-secondary:hover {
+  color: #ffffff;
+
+  border-color:
+    rgba(255, 255, 255, 0.38);
+
+  background:
+    rgba(255, 255, 255, 0.1);
+
+  box-shadow: none;
+}
+
+.btn-danger {
+  color: #ffffff;
+
+  border: 1px dashed
+    rgba(255, 255, 255, 0.36);
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  box-shadow: none;
+}
+
+.btn-danger:hover {
+  color: #000000;
+
+  border-style: solid;
+  border-color: #ffffff;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 14px 34px
+    rgba(0, 0, 0, 0.48);
+}
+
+/* =========================================================
+   FORMS
+========================================================= */
+
+input,
+textarea,
+select {
+  color: var(--text);
+
+  border-color:
+    rgba(255, 255, 255, 0.12);
+
+  background:
+    rgba(0, 0, 0, 0.42);
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color:
+    rgba(255, 255, 255, 0.25);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #ffffff;
+
+  background:
+    rgba(0, 0, 0, 0.72);
+
+  box-shadow: var(--focus-ring);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #707070;
+}
+
+select option {
+  color: #ffffff;
+
+  background: #101010;
+}
+
+/* =========================================================
+   MAIN SURFACES
+========================================================= */
+
+.join-container,
+.chat-container,
+.profile-card,
+.public-profile-card,
+.room-directory-header,
+.room-card,
+.room-settings-header,
+.room-settings-card {
+  border-color:
+    rgba(255, 255, 255, 0.1);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(19, 19, 19, 0.94),
+      rgba(8, 8, 8, 0.96)
+    );
+
+  box-shadow:
+    0 28px 90px
+    rgba(0, 0, 0, 0.55);
+}
+
+.join-container::before {
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.35),
+      #ffffff,
+      rgba(255, 255, 255, 0.35),
+      transparent
+    );
+
+  box-shadow:
+    0 0 28px
+    rgba(255, 255, 255, 0.17);
+}
+
+.join-header::after {
+  background:
+    linear-gradient(
+      90deg,
+      #5f5f5f,
+      #ffffff
+    );
+}
+
+.room-directory-hero,
+.room-settings-hero,
+.profile-hero {
+  border-color:
+    rgba(255, 255, 255, 0.12);
+
+  background:
+    radial-gradient(
+      circle at 88% 12%,
+      rgba(255, 255, 255, 0.13),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 5% 100%,
+      rgba(255, 255, 255, 0.05),
+      transparent 32%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(28, 28, 28, 0.96),
+      rgba(5, 5, 5, 0.98)
+    );
+}
+
+/* =========================================================
+   BRAND AND DECORATIVE ICONS
+========================================================= */
+
+.join-header h1 i,
+.chat-header h1 i,
+.brand-link i,
+.room-card-icon,
+.room-user-avatar,
+.message-avatar,
+.avatar-fallback,
+.public-profile-avatar,
+.room-invite-icon,
+.managed-member-avatar {
+  color: #050505;
+
+  border-color:
+    rgba(255, 255, 255, 0.45);
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #a9a9a9 100%
+    );
+
+  box-shadow:
+    0 12px 30px
+    rgba(0, 0, 0, 0.45),
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.8);
+}
+
+.brand-link {
+  color: #ffffff;
+}
+
+/* =========================================================
+   AUTHENTICATION
+========================================================= */
+
+.join-main input[type="text"],
+.join-main input[type="email"],
+.join-main input[type="password"],
+.join-main select {
+  color: #ffffff;
+
+  background:
+    rgba(0, 0, 0, 0.48);
+}
+
+.join-main input:focus,
+.join-main select:focus {
+  border-color: #ffffff;
+
+  background:
+    rgba(0, 0, 0, 0.78);
+
+  box-shadow: var(--focus-ring);
+}
+
+.auth-link a,
+#current-user {
+  color: #ffffff;
+}
+
+.auth-link a:hover,
+#current-user:hover {
+  color: #bcbcbc;
+}
+
+.form-error {
+  color: #ffffff;
+
+  border: 1px dashed
+    rgba(255, 255, 255, 0.35);
+
+  background:
+    rgba(255, 255, 255, 0.055);
+}
+
+/* =========================================================
+   CHAT LAYOUT
+========================================================= */
+
+.chat-container {
+  background:
+    rgba(8, 8, 8, 0.94);
+}
+
+.chat-header {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(22, 22, 22, 0.98),
+      rgba(7, 7, 7, 0.98)
+    );
+}
+
+.chat-header::before {
+  background:
+    linear-gradient(
+      90deg,
+      #ffffff,
+      #777777,
+      transparent
+    );
+}
+
+.chat-header small strong,
+.chat-header small a {
+  color: #ffffff;
+}
+
+.chat-sidebar {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 20, 20, 0.98),
+      rgba(5, 5, 5, 0.99)
+    );
+}
+
+.chat-sidebar h3 i {
+  color: #ffffff;
+}
+
+.chat-sidebar h2 {
+  color: #ffffff;
+
+  border-color:
+    rgba(255, 255, 255, 0.25);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 255, 255, 0.025)
+    );
+}
+
+.chat-sidebar h2::before {
+  color: #ffffff;
+}
+
+.room-user:hover {
+  background:
+    rgba(255, 255, 255, 0.075);
+}
+
+.room-user-avatar::after {
+  border-color: #0b0b0b;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 255, 255, 0.12),
+    0 0 13px
+    rgba(255, 255, 255, 0.28);
+}
+
+.chat-messages {
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 255, 255, 0.055),
+      transparent 35%
+    );
+}
+
+.chat-messages .message {
+  border-color:
+    rgba(255, 255, 255, 0.1);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(29, 29, 29, 0.98),
+      rgba(13, 13, 13, 0.98)
+    );
+
+  box-shadow:
+    0 15px 35px
+    rgba(0, 0, 0, 0.38);
+}
+
+.chat-messages .message:hover {
+  border-color:
+    rgba(255, 255, 255, 0.3);
+}
+
+.chat-messages .message .meta,
+.chat-messages .message .meta a {
+  color: #ffffff;
+}
+
+.chat-messages .message .meta a:hover {
+  color: #bcbcbc;
+}
+
+.chat-messages .message .text {
+  color: #e7e7e7;
+}
+
+.message-row-own .message {
+  color: #050505;
+
+  border-color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #d4d4d4
+    );
+
+  box-shadow:
+    0 16px 40px
+    rgba(255, 255, 255, 0.08);
+}
+
+.message-row-own .message .meta,
+.message-row-own .message .meta a,
+.message-row-own .message .text {
+  color: #080808;
+}
+
+.message-row-own
+.message
+.meta > span:last-child {
+  color: #595959;
+}
+
+.message-row-system .message {
+  color: var(--text-muted);
+
+  border-color:
+    rgba(255, 255, 255, 0.18);
+
+  background:
+    rgba(255, 255, 255, 0.035);
+}
+
+.chat-form-container {
+  background:
+    rgba(8, 8, 8, 0.99);
+}
+
+.chat-form-container
+input[type="text"] {
+  color: #ffffff;
+
+  background:
+    rgba(0, 0, 0, 0.58);
+}
+
+.chat-form-container
+input[type="text"]:focus {
+  border-color: #ffffff;
+
+  background: #050505;
+
+  box-shadow: var(--focus-ring);
+}
+
+/* =========================================================
+   MESSAGE ACTIONS AND REPLIES
+========================================================= */
+
+.message-row-selected .message {
+  border-color: #ffffff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 255, 255, 0.13),
+    var(--shadow-small);
+}
+
+.message-actions {
+  border-color:
+    rgba(255, 255, 255, 0.24);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.09),
+      rgba(255, 255, 255, 0.025)
+    );
+}
+
+.message-actions-summary i,
+.reply-preview-icon,
+.reply-preview-content strong,
+.reply-reference strong {
+  color: #ffffff;
+}
+
+.message-action-button,
+.quick-reaction,
+.message-actions-close {
+  color: var(--text-soft);
+
+  border-color:
+    rgba(255, 255, 255, 0.13);
+
+  background:
+    rgba(255, 255, 255, 0.055);
+}
+
+.message-action-button:hover,
+.quick-reaction:hover,
+.message-actions-close:hover {
+  color: #000000;
+
+  border-color: #ffffff;
+
+  background: #ffffff;
+}
+
+.reply-preview {
+  border-left-color: #ffffff;
+
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+.reply-reference {
+  border-left-color: #ffffff;
+
+  background:
+    rgba(0, 0, 0, 0.2);
+}
+
+.reply-reference:hover {
+  background:
+    rgba(255, 255, 255, 0.075);
+}
+
+.reaction-pill {
+  color: var(--text-soft);
+
+  border-color:
+    rgba(255, 255, 255, 0.13);
+
+  background:
+    rgba(255, 255, 255, 0.05);
+}
+
+.reaction-pill:hover {
+  color: #ffffff;
+
+  border-color:
+    rgba(255, 255, 255, 0.4);
+
+  background:
+    rgba(255, 255, 255, 0.11);
+}
+
+.reaction-pill-active {
+  color: #000000;
+
+  border-color: #ffffff;
+
+  background: #ffffff;
+}
+
+.message-row-own .reaction-pill {
+  color: #111111;
+
+  border-color:
+    rgba(0, 0, 0, 0.2);
+
+  background:
+    rgba(0, 0, 0, 0.07);
+}
+
+.message-row-own
+.reaction-pill-active {
+  color: #ffffff;
+
+  border-color: #000000;
+
+  background: #000000;
+}
+
+.message-row-own
+.reply-reference {
+  border-left-color: #000000;
+
+  background:
+    rgba(0, 0, 0, 0.07);
+}
+
+.message-row-own
+.reply-reference strong,
+.message-row-own
+.reply-reference span {
+  color: #111111;
+}
+
+/* =========================================================
+   ROOM DIRECTORY
+========================================================= */
+
+.room-card:hover {
+  border-color:
+    rgba(255, 255, 255, 0.32);
+}
+
+.room-card-member {
+  border-color:
+    rgba(255, 255, 255, 0.27);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(255, 255, 255, 0.035),
+    var(--shadow-small);
+}
+
+.room-search {
+  color: var(--text-muted);
+
+  border-color:
+    rgba(255, 255, 255, 0.12);
+
+  background:
+    rgba(0, 0, 0, 0.5);
+}
+
+.room-search:focus-within {
+  border-color: #ffffff;
+
+  box-shadow: var(--focus-ring);
+}
+
+.room-badge {
+  border-color:
+    rgba(255, 255, 255, 0.16);
+}
+
+.room-badge-public {
+  color: #ffffff;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+}
+
+.room-badge-private {
+  color: #d0d0d0;
+
+  border-style: dashed;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+}
+
+.room-badge-system {
+  color: #bcbcbc;
+
+  border-style: dotted;
+
+  background:
+    rgba(255, 255, 255, 0.04);
+}
+
+.room-badge-owner {
+  color: #000000;
+
+  border-color: #ffffff;
+
+  background: #ffffff;
+}
+
+.room-badge-admin {
+  color: #ffffff;
+
+  border-color:
+    rgba(255, 255, 255, 0.4);
+
+  background:
+    rgba(255, 255, 255, 0.12);
+}
+
+.room-badge-member {
+  color: #a7a7a7;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+}
+
+.room-unread-count {
+  color: #000000;
+
+  border: 1px solid #ffffff;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 8px 24px
+    rgba(255, 255, 255, 0.14);
+}
+
+.room-empty-state {
+  border-color:
+    rgba(255, 255, 255, 0.17);
+}
+
+/* =========================================================
+   ROOM MODALS AND INVITE CODES
+========================================================= */
+
+.room-modal-backdrop,
+.crop-modal-backdrop {
+  background:
+    rgba(0, 0, 0, 0.88);
+}
+
+.room-modal-dialog,
+.crop-dialog {
+  border-color:
+    rgba(255, 255, 255, 0.13);
+
+  background:
+    linear-gradient(
+      145deg,
+      #171717,
+      #070707
+    );
+
+  box-shadow:
+    0 35px 110px
+    rgba(0, 0, 0, 0.8);
+}
+
+.room-modal-close,
+.crop-close-button,
+.invite-code-copy,
+.crop-tool-button {
+  color: var(--text-soft);
+
+  border-color:
+    rgba(255, 255, 255, 0.13);
+
+  background:
+    rgba(255, 255, 255, 0.055);
+}
+
+.room-modal-close:hover,
+.crop-close-button:hover,
+.invite-code-copy:hover,
+.crop-tool-button:hover {
+  color: #000000;
+
+  border-color: #ffffff;
+
+  background: #ffffff;
+}
+
+.invite-code-result {
+  border-color:
+    rgba(255, 255, 255, 0.28);
+
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+.invite-code-value {
+  color: #ffffff;
+}
+
+.invite-code-warning {
+  color: var(--text-soft);
+
+  border: 1px dashed
+    rgba(255, 255, 255, 0.22);
+
+  background:
+    rgba(255, 255, 255, 0.035);
+}
+
+/* =========================================================
+   PROFILES
+========================================================= */
+
+.profile-avatar-shell {
+  border-color:
+    rgba(255, 255, 255, 0.42);
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #8d8d8d
+    );
+
+  box-shadow:
+    0 20px 52px
+    rgba(0, 0, 0, 0.55);
+}
+
+.profile-card input,
+.profile-card textarea {
+  color: #ffffff;
+
+  background:
+    rgba(0, 0, 0, 0.46);
+}
+
+.profile-card input:focus,
+.profile-card textarea:focus {
+  border-color: #ffffff;
+
+  box-shadow: var(--focus-ring);
+}
+
+.file-picker {
+  color: var(--text-soft);
+
+  border-color:
+    rgba(255, 255, 255, 0.28);
+
+  background:
+    rgba(255, 255, 255, 0.045);
+}
+
+.file-picker:hover {
+  color: #ffffff;
+
+  border-color: #ffffff;
+
+  background:
+    rgba(255, 255, 255, 0.1);
+}
+
+.profile-presence.is-online {
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(255, 255, 255, 0.12),
+    0 0 20px
+    rgba(255, 255, 255, 0.28);
+}
+
+/* =========================================================
+   ROOM SETTINGS
+========================================================= */
+
+.room-settings-card-header > i {
+  color: #ffffff;
+}
+
+.room-settings-card-body input,
+.room-settings-card-body textarea,
+.room-settings-card-body select {
+  color: #ffffff;
+
+  background:
+    rgba(0, 0, 0, 0.48);
+}
+
+.room-settings-card-body input:focus,
+.room-settings-card-body textarea:focus,
+.room-settings-card-body select:focus {
+  border-color: #ffffff;
+
+  box-shadow: var(--focus-ring);
+}
+
+.room-danger-card {
+  border: 1px dashed
+    rgba(255, 255, 255, 0.25);
+}
+
+.room-danger-card
+.room-settings-card-header > i {
+  color: #ffffff;
+}
+
+.member-role-select {
+  color: #ffffff;
+
+  border-color:
+    rgba(255, 255, 255, 0.14);
+
+  background: #090909;
+}
+
+/* =========================================================
+   CROP INTERFACE
+========================================================= */
+
+.crop-stage {
+  border-color:
+    rgba(255, 255, 255, 0.12);
+
+  background:
+    repeating-conic-gradient(
+      #111111 0% 25%,
+      #181818 0% 50%
+    )
+    50% / 20px 20px;
+}
+
+.crop-preview-panel {
+  border-color:
+    rgba(255, 255, 255, 0.12);
+
+  background:
+    rgba(255, 255, 255, 0.03);
+}
+
+.crop-avatar-preview {
+  border-color:
+    rgba(255, 255, 255, 0.4);
+}
+
+/* =========================================================
+   STATUS AND FEEDBACK
+========================================================= */
+
+.form-error,
+.profile-status[data-type="error"],
+.room-directory-status[data-type="error"],
+#settings-page-status[data-type="error"],
+#settings-invite-status[data-type="error"],
+#create-room-status[data-type="error"],
+#join-invite-status[data-type="error"] {
+  color: #ffffff;
+
+  border-color:
+    rgba(255, 255, 255, 0.28);
+
+  background:
+    rgba(255, 255, 255, 0.055);
+}
+
+.profile-eyebrow,
+.room-eyebrow {
+  color: #ffffff;
+}
+
+/* =========================================================
+   UNREAD DIVIDER
+========================================================= */
+
+.new-message-divider {
+  color: #ffffff;
+}
+
+.new-message-divider::before {
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.65)
+    );
+}
+
+.new-message-divider::after {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.65),
+      transparent
+    );
+}
+
+/* =========================================================
+   FOCUS ACCESSIBILITY
+========================================================= */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+
+  box-shadow: var(--focus-ring);
+}

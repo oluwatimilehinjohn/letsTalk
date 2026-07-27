@@ -1,0 +1,75 @@
+.room-card-summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.room-unread-count {
+  display: inline-grid;
+  place-items: center;
+
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+
+  border-radius: 999px;
+
+  color: white;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary),
+      var(--secondary)
+    );
+
+  box-shadow:
+    0 6px 18px
+    rgba(124, 92, 255, 0.28);
+}
+
+.new-message-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin: 15px 0;
+
+  color: var(--secondary);
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.new-message-divider::before,
+.new-message-divider::after {
+  content: "";
+
+  height: 1px;
+  flex: 1;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(34, 211, 238, 0.55)
+    );
+}
+
+.new-message-divider::after {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(34, 211, 238, 0.55),
+      transparent
+    );
+}
+
+.new-message-divider span {
+  flex-shrink: 0;
+}

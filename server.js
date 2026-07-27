@@ -43,6 +43,10 @@ const roomRouter =
     "./routes/roomRoutes"
   );
 
+const roomReadRouter = require(
+  "./routes/roomReadRoutes"
+);
+
 const roomManagementRouter =
   require(
     "./routes/roomManagementRoutes"
@@ -88,6 +92,8 @@ const server =
 
 const io =
   new Server(server);
+app.set("io", io);
+
 
 const PORT =
   process.env.PORT || 3000;
@@ -158,6 +164,11 @@ app.use(
 
 app.use(
   "/api/rooms",
+  roomReadRouter
+);
+
+app.use(
+  "/api/rooms",
   roomRouter
 );
 
@@ -165,7 +176,6 @@ app.use(
   "/api/rooms",
   roomManagementRouter
 );
-
 /*
  * Register this before the general
  * page router.

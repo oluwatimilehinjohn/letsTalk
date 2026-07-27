@@ -37,6 +37,14 @@ export async function fetchRooms() {
   return readResponse(response);
 }
 
+export async function fetchReadSummary() {
+  const response = await fetch(
+    "/api/rooms/read-summary"
+  );
+
+  return readResponse(response);
+}
+
 export async function createRoom(room) {
   const response = await fetch(
     "/api/rooms",

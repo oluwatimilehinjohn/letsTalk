@@ -2,43 +2,25 @@ import { dom } from "./dom.js";
 import { state } from "./state.js";
 
 function getVisibleRooms() {
-  const query =
-    state.searchQuery
-      .trim()
-      .toLowerCase();
+  const query = state.searchQuery.trim().toLowerCase();
 
   if (!query) {
     return state.rooms;
   }
 
-  return state.rooms.filter(
-    (room) => {
-      const searchableText = [
-        room.name,
-        room.description,
-        room.visibility,
-      ]
-        .join(" ")
-        .toLowerCase();
+  return state.rooms.filter((room) => {
+    const searchableText = [room.name, room.description, room.visibility]
+      .join(" ")
+      .toLowerCase();
 
-      return searchableText.includes(
-        query
-      );
-    }
-  );
+    return searchableText.includes(query);
+  });
 }
 
-function createBadge(
-  text,
-  className
-) {
-  const badge =
-    document.createElement("span");
+function createBadge(text, className) {
+  const badge = document.createElement("span");
 
-  badge.classList.add(
-    "room-badge",
-    className
-  );
+  badge.classList.add("room-badge", className);
 
   badge.innerText = text;
 
@@ -46,54 +28,38 @@ function createBadge(
 }
 
 function createRoomHeader(room) {
-  const header =
-    document.createElement("div");
+  const header = document.createElement("div");
 
-  header.className =
-    "room-card-header";
+  header.className = "room-card-header";
 
-  const icon =
-    document.createElement("span");
+  const icon = document.createElement("span");
 
-  icon.className =
-    "room-card-icon";
+  icon.className = "room-card-icon";
 
   icon.innerHTML =
     room.visibility === "private"
       ? '<i class="fas fa-lock"></i>'
       : '<i class="fas fa-comments"></i>';
 
-  const badges =
-    document.createElement("div");
+  const badges = document.createElement("div");
 
-  badges.className =
-    "room-card-badges";
+  badges.className = "room-card-badges";
 
   badges.appendChild(
     createBadge(
       room.visibility,
       room.visibility === "private"
         ? "room-badge-private"
-        : "room-badge-public"
-    )
+        : "room-badge-public",
+    ),
   );
 
   if (room.isSystem) {
-    badges.appendChild(
-      createBadge(
-        "Official",
-        "room-badge-system"
-      )
-    );
+    badges.appendChild(createBadge("Official", "room-badge-system"));
   }
 
   if (room.role) {
-    badges.appendChild(
-      createBadge(
-        room.role,
-        `room-badge-${room.role}`
-      )
-    );
+    badges.appendChild(createBadge(room.role, `room-badge-${room.role}`));
   }
 
   header.appendChild(icon);
@@ -103,23 +69,18 @@ function createRoomHeader(room) {
 }
 
 function createRoomInformation(room) {
-  const content =
-    document.createElement("div");
+  const content = document.createElement("div");
 
-  content.className =
-    "room-card-content";
+  content.className = "room-card-content";
 
-  const title =
-    document.createElement("h2");
+  const title = document.createElement("h2");
 
   title.innerText = room.name;
 
-  const description =
-    document.createElement("p");
+  const description = document.createElement("p");
 
   description.innerText =
-    room.description ||
-    "No room description has been added.";
+    room.description || "No room description has been added.";
 
   content.appendChild(title);
   content.appendChild(description);
@@ -135,49 +96,36 @@ function createActionButton({
   label,
   disabled = false,
 }) {
-  const button =
-    document.createElement("button");
+  const button = document.createElement("button");
 
   button.type = "button";
 
-  button.className =
-    className;
+  button.className = className;
 
-  button.dataset.action =
-    action;
+  button.dataset.action = action;
 
-  button.dataset.roomSlug =
-    room.slug;
+  button.dataset.roomSlug = room.slug;
 
-  button.dataset.roomName =
-    room.name;
+  button.dataset.roomName = room.name;
 
-  button.disabled =
-    disabled;
+  button.disabled = disabled;
 
-  button.innerHTML =
-    `<i class="${icon}"></i>
+  button.innerHTML = `<i class="${icon}"></i>
     <span>${label}</span>`;
 
   return button;
 }
 
 function createRoomActions(room) {
-  const actions =
-    document.createElement("div");
+  const actions = document.createElement("div");
 
-  actions.className =
-    "room-card-actions";
+  actions.className = "room-card-actions";
 
   if (room.isMember) {
-    if (
-      room.role === "owner" ||
-      room.role === "admin"
-    ) {
+    if (room.role === "owner" || room.role === "admin") {
       actions.appendChild(
         createActionButton({
-          className:
-            "btn btn-secondary room-icon-button",
+          className: "btn btn-secondary room-icon-button",
 
           action: "settings",
 
@@ -186,48 +134,39 @@ function createRoomActions(room) {
           icon: "fas fa-cog",
 
           label: "Settings",
-        })
+        }),
       );
     }
 
-    if (
-      room.role === "owner" &&
-      room.joinPolicy === "invite"
-    ) {
+    if (room.role === "owner" && room.joinPolicy === "invite") {
       actions.appendChild(
         createActionButton({
-          className:
-            "btn btn-secondary room-icon-button",
+          className: "btn btn-secondary room-icon-button",
 
-          action:
-            "manage-invite",
+          action: "manage-invite",
 
           room,
 
           icon: "fas fa-key",
 
           label: "Invite",
-        })
+        }),
       );
     }
 
-    if (
-      room.role !== "owner"
-    ) {
+    if (room.role !== "owner") {
       actions.appendChild(
         createActionButton({
-          className:
-            "btn btn-danger room-icon-button",
+          className: "btn btn-danger room-icon-button",
 
           action: "leave",
 
           room,
 
-          icon:
-            "fas fa-sign-out-alt",
+          icon: "fas fa-sign-out-alt",
 
           label: "Leave",
-        })
+        }),
       );
     }
 
@@ -239,46 +178,37 @@ function createRoomActions(room) {
 
         room,
 
-        icon:
-          "fas fa-arrow-right",
+        icon: "fas fa-arrow-right",
 
         label: "Enter",
-      })
+      }),
     );
 
     return actions;
   }
 
-  if (
-    room.visibility === "public" &&
-    room.joinPolicy === "open"
-  ) {
+  if (room.visibility === "public" && room.joinPolicy === "open") {
     actions.appendChild(
       createActionButton({
-        className:
-          "btn btn-secondary",
+        className: "btn btn-secondary",
 
         action: "join",
 
         room,
 
-        icon:
-          "fas fa-sign-in-alt",
+        icon: "fas fa-sign-in-alt",
 
         label: "Join",
-      })
+      }),
     );
 
     return actions;
   }
 
-  if (
-    room.joinPolicy === "invite"
-  ) {
+  if (room.joinPolicy === "invite") {
     actions.appendChild(
       createActionButton({
-        className:
-          "btn btn-secondary",
+        className: "btn btn-secondary",
 
         action: "join-invite",
 
@@ -287,7 +217,7 @@ function createRoomActions(room) {
         icon: "fas fa-key",
 
         label: "Use code",
-      })
+      }),
     );
 
     return actions;
@@ -295,8 +225,7 @@ function createRoomActions(room) {
 
   actions.appendChild(
     createActionButton({
-      className:
-        "btn btn-secondary",
+      className: "btn btn-secondary",
 
       action: "unavailable",
 
@@ -307,94 +236,82 @@ function createRoomActions(room) {
       label: "Unavailable",
 
       disabled: true,
-    })
+    }),
   );
 
   return actions;
 }
 
 function createRoomFooter(room) {
-  const footer =
-    document.createElement("div");
+  const footer = document.createElement("div");
 
-  footer.className =
-    "room-card-footer";
+  footer.className = "room-card-footer";
 
-  const members =
-    document.createElement("span");
+  const summary = document.createElement("div");
 
-  members.className =
-    "room-member-count";
+  summary.className = "room-card-summary";
 
-  members.innerHTML =
-    `<i class="fas fa-users"></i>
+  const members = document.createElement("span");
+
+  members.className = "room-member-count";
+
+  members.innerHTML = `<i class="fas fa-users"></i>
     ${room.memberCount}
-    member${
-      room.memberCount === 1
-        ? ""
-        : "s"
-    }`;
+    member${room.memberCount === 1 ? "" : "s"}`;
 
-  footer.appendChild(members);
+  summary.appendChild(members);
 
-  footer.appendChild(
-    createRoomActions(room)
-  );
+  if (Number(room.unreadCount) > 0) {
+    const unread = document.createElement("span");
+
+    unread.className = "room-unread-count";
+
+    unread.innerText = room.unreadCount > 99 ? "99+" : String(room.unreadCount);
+
+    unread.setAttribute("aria-label", `${room.unreadCount} unread messages`);
+
+    summary.appendChild(unread);
+  }
+
+  footer.appendChild(summary);
+
+  footer.appendChild(createRoomActions(room));
 
   return footer;
 }
 
 function createRoomCard(room) {
-  const card =
-    document.createElement("article");
+  const card = document.createElement("article");
 
-  card.className =
-    "room-card";
+  card.className = "room-card";
 
   if (room.isMember) {
-    card.classList.add(
-      "room-card-member"
-    );
+    card.classList.add("room-card-member");
   }
 
-  card.appendChild(
-    createRoomHeader(room)
-  );
+  card.appendChild(createRoomHeader(room));
 
-  card.appendChild(
-    createRoomInformation(room)
-  );
+  card.appendChild(createRoomInformation(room));
 
-  card.appendChild(
-    createRoomFooter(room)
-  );
+  card.appendChild(createRoomFooter(room));
 
   return card;
 }
 
-export function setDirectoryStatus(
-  message,
-  type = ""
-) {
-  dom.directoryStatus.innerText =
-    message;
+export function setDirectoryStatus(message, type = "") {
+  dom.directoryStatus.innerText = message;
 
-  dom.directoryStatus.dataset.type =
-    type;
+  dom.directoryStatus.dataset.type = type;
 }
 
 export function renderRooms() {
-  const rooms =
-    getVisibleRooms();
+  const rooms = getVisibleRooms();
 
   dom.roomList.innerHTML = "";
 
-  dom.emptyState.hidden =
-    rooms.length > 0;
+  dom.emptyState.hidden = rooms.length > 0;
 
   rooms.forEach((room) => {
-    dom.roomList.appendChild(
-      createRoomCard(room)
-    );
+    dom.roomList.appendChild(createRoomCard(room));
   });
 }

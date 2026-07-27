@@ -1,33 +1,38 @@
 :root {
-  --background: #080b16;
-  --background-soft: #101426;
+  --background: #030303;
+  --background-soft: #090909;
 
-  --surface: rgba(20, 25, 45, 0.88);
-  --surface-solid: #151a2f;
-  --surface-light: #1d233c;
-  --surface-hover: #242b49;
+  --surface: rgba(15, 15, 15, 0.9);
+  --surface-solid: #101010;
+  --surface-light: #171717;
+  --surface-hover: #202020;
 
-  --primary: #7c5cff;
-  --primary-dark: #6545ed;
-  --primary-light: #aa9bff;
-  --secondary: #22d3ee;
+  --primary: #ffffff;
+  --primary-dark: #d7d7d7;
+  --primary-light: #ffffff;
+  --secondary: #a8a8a8;
 
-  --text: #f7f8ff;
-  --text-soft: #b8bfd5;
-  --text-muted: #7e87a4;
+  --text: #ffffff;
+  --text-soft: #d7d7d7;
+  --text-muted: #8b8b8b;
 
-  --success: #32d583;
-  --danger: #ff5c7a;
-  --warning: #ffbd5c;
+  --success: #f5f5f5;
+  --danger: #d0d0d0;
+  --warning: #b8b8b8;
 
-  --border: rgba(255, 255, 255, 0.09);
-  --border-bright: rgba(124, 92, 255, 0.35);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-bright: rgba(255, 255, 255, 0.3);
 
-  --shadow-small: 0 10px 30px rgba(0, 0, 0, 0.2);
-  --shadow-large: 0 30px 80px rgba(0, 0, 0, 0.45);
+  --shadow-small:
+    0 12px 35px rgba(0, 0, 0, 0.38);
+
+  --shadow-large:
+    0 34px 100px rgba(0, 0, 0, 0.72);
+
+  --focus-ring:
+    0 0 0 4px rgba(255, 255, 255, 0.11);
 
   --radius-small: 10px;
   --radius-medium: 16px;
   --radius-large: 24px;
 }
-

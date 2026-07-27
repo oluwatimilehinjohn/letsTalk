@@ -6,8 +6,13 @@ const Message = require(
   "../../models/Message"
 );
 
+const Room = require(
+  "../../models/Rooms"
+);
+
 const {
   getCurrentUser,
+  getUserSockets,
 } = require(
   "../../utils/users"
 );
@@ -22,6 +27,12 @@ const {
   serializeMessage,
 } = require(
   "../services/messageSerializer"
+);
+
+const {
+  getUserChannel,
+} = require(
+  "../services/userChannel"
 );
 
 function sendAcknowledgement(
@@ -65,6 +76,89 @@ function getReplyId(payload) {
     payload.replyTo ||
     null
   );
+}
+
+async function emitRoomActivity(
+  io,
+  user,
+  message
+) {
+  const room =
+    await Room.findById(
+      user.roomId
+    )
+      .select(
+        "name slug members.userId"
+      )
+      .lean();
+
+  if (!room) {
+    return;
+  }
+
+  const messageId =
+    String(message._id);
+
+  const lastMessageAt =
+    message.createdAt;
+
+  for (
+    const membership
+    of room.members
+  ) {
+    const memberUserId =
+      String(
+        membership.userId
+      );
+
+    const isSender =
+      memberUserId ===
+      String(user.userId);
+
+    const activeSockets =
+      getUserSockets(
+        memberUserId
+      );
+
+    const isViewingRoom =
+      activeSockets.some(
+        (activeUser) => {
+          return (
+            activeUser.roomId ===
+            String(room._id)
+          );
+        }
+      );
+
+    io.to(
+      getUserChannel(
+        memberUserId
+      )
+    ).emit(
+      "roomActivity",
+      {
+        roomId:
+          String(room._id),
+
+        roomSlug:
+          room.slug,
+
+        roomName:
+          room.name,
+
+        messageId,
+
+        lastMessageAt,
+
+        senderId:
+          String(user.userId),
+
+        shouldIncrement:
+          !isSender &&
+          !isViewingRoom,
+      }
+    );
+  }
 }
 
 function sendMessage(io, socket) {
@@ -149,8 +243,7 @@ function sendMessage(io, socket) {
 
         const replyMessage =
           await Message.findOne({
-            _id:
-              replyId,
+            _id: replyId,
 
             roomId:
               user.roomId,
@@ -189,6 +282,21 @@ function sendMessage(io, socket) {
           reactions: [],
         });
 
+      await Room.updateOne(
+        {
+          _id: user.roomId,
+        },
+        {
+          $set: {
+            lastMessageId:
+              message._id,
+
+            lastMessageAt:
+              message.createdAt,
+          },
+        }
+      );
+
       await message.populate(
         MESSAGE_POPULATION
       );
@@ -213,6 +321,12 @@ function sendMessage(io, socket) {
       ).emit(
         "message",
         serializedMessage
+      );
+
+      await emitRoomActivity(
+        io,
+        user,
+        message
       );
 
       sendAcknowledgement(
