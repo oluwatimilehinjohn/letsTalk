@@ -24,15 +24,15 @@ const {
   "../services/messageSerializer"
 );
 
-function sendAcknowledgement(
-  acknowledgement,
+function acknowledge(
+  callback,
   payload
 ) {
   if (
-    typeof acknowledgement ===
+    typeof callback ===
     "function"
   ) {
-    acknowledgement(payload);
+    callback(payload);
   }
 }
 
@@ -45,7 +45,7 @@ function reactToMessage(
       messageId,
       emoji,
     } = {},
-    acknowledgement
+    callback
   ) => {
     try {
       const user =
@@ -54,8 +54,8 @@ function reactToMessage(
         );
 
       if (!user) {
-        sendAcknowledgement(
-          acknowledgement,
+        acknowledge(
+          callback,
           {
             ok: false,
 
@@ -72,8 +72,8 @@ function reactToMessage(
           messageId
         )
       ) {
-        sendAcknowledgement(
-          acknowledgement,
+        acknowledge(
+          callback,
           {
             ok: false,
 
@@ -90,8 +90,8 @@ function reactToMessage(
           emoji
         )
       ) {
-        sendAcknowledgement(
-          acknowledgement,
+        acknowledge(
+          callback,
           {
             ok: false,
 
@@ -113,8 +113,8 @@ function reactToMessage(
         });
 
       if (!message) {
-        sendAcknowledgement(
-          acknowledgement,
+        acknowledge(
+          callback,
           {
             ok: false,
 
@@ -126,17 +126,34 @@ function reactToMessage(
         return;
       }
 
-      const reactionIndex =
-        message.reactions.findIndex(
-          (reaction) => {
-            return (
-              reaction.emoji ===
-              emoji
-            );
+      if (message.isDeleted) {
+        acknowledge(
+          callback,
+          {
+            ok: false,
+
+            error:
+              "Deleted messages cannot receive reactions.",
           }
         );
 
-      if (reactionIndex === -1) {
+        return;
+      }
+
+      const reactionIndex =
+        message.reactions
+          .findIndex(
+            (reaction) => {
+              return (
+                reaction.emoji ===
+                emoji
+              );
+            }
+          );
+
+      if (
+        reactionIndex === -1
+      ) {
         message.reactions.push({
           emoji,
 
@@ -151,20 +168,25 @@ function reactToMessage(
           ];
 
         const userIndex =
-          reaction.userIds.findIndex(
-            (reactionUserId) => {
-              return (
-                String(
-                  reactionUserId
-                ) ===
-                String(
-                  user.userId
-                )
-              );
-            }
-          );
+          reaction.userIds
+            .findIndex(
+              (
+                reactionUserId
+              ) => {
+                return (
+                  String(
+                    reactionUserId
+                  ) ===
+                  String(
+                    user.userId
+                  )
+                );
+              }
+            );
 
-        if (userIndex === -1) {
+        if (
+          userIndex === -1
+        ) {
           reaction.userIds.push(
             user.userId
           );
@@ -176,8 +198,8 @@ function reactToMessage(
         }
 
         if (
-          reaction.userIds.length ===
-          0
+          reaction.userIds
+            .length === 0
         ) {
           message.reactions.splice(
             reactionIndex,
@@ -212,8 +234,8 @@ function reactToMessage(
         result
       );
 
-      sendAcknowledgement(
-        acknowledgement,
+      acknowledge(
+        callback,
         {
           ok: true,
 
@@ -226,8 +248,8 @@ function reactToMessage(
         error
       );
 
-      sendAcknowledgement(
-        acknowledgement,
+      acknowledge(
+        callback,
         {
           ok: false,
 
@@ -235,13 +257,9 @@ function reactToMessage(
             "Unable to update the reaction.",
         }
       );
-
-      socket.emit(
-        "reactionError",
-        "Unable to update the reaction."
-      );
     }
   };
 }
 
-module.exports = reactToMessage;
+module.exports =
+  reactToMessage;

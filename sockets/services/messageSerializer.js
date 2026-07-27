@@ -1,3 +1,6 @@
+const DELETED_MESSAGE_TEXT =
+  "This message was deleted.";
+
 function serializeId(value) {
   if (!value) {
     return null;
@@ -17,7 +20,9 @@ function serializeUser(
   if (!user) {
     const fallbackId =
       fallback.userId
-        ? String(fallback.userId)
+        ? String(
+            fallback.userId
+          )
         : null;
 
     const fallbackUsername =
@@ -64,24 +69,28 @@ function serializeUser(
 function serializeReactions(
   reactions = []
 ) {
-  return reactions.map((reaction) => {
-    const userIds =
-      Array.isArray(reaction.userIds)
-        ? reaction.userIds.map(
-            serializeId
-          )
-        : [];
+  return reactions.map(
+    (reaction) => {
+      const userIds =
+        Array.isArray(
+          reaction.userIds
+        )
+          ? reaction.userIds.map(
+              serializeId
+            )
+          : [];
 
-    return {
-      emoji:
-        reaction.emoji,
+      return {
+        emoji:
+          reaction.emoji,
 
-      userIds,
+        userIds,
 
-      count:
-        userIds.length,
-    };
-  });
+        count:
+          userIds.length,
+      };
+    }
+  );
 }
 
 function serializeReply(reply) {
@@ -89,21 +98,31 @@ function serializeReply(reply) {
     return null;
   }
 
+  const isDeleted =
+    Boolean(
+      reply.isDeleted
+    );
+
   const user =
     serializeUser(
       reply.userId,
       reply
     );
 
+  const replyId =
+    serializeId(reply);
+
   return {
     id:
-      serializeId(reply),
+      replyId,
 
     _id:
-      serializeId(reply),
+      replyId,
 
     text:
-      reply.text || "",
+      isDeleted
+        ? DELETED_MESSAGE_TEXT
+        : reply.text || "",
 
     user,
 
@@ -118,6 +137,11 @@ function serializeReply(reply) {
 
     avatarUrl:
       user.avatarUrl,
+
+    isDeleted,
+
+    deletedAt:
+      reply.deletedAt || null,
 
     createdAt:
       reply.createdAt || null,
@@ -155,6 +179,11 @@ function serializeMessage(
     message.roomSlug ||
     "";
 
+  const isDeleted =
+    Boolean(
+      message.isDeleted
+    );
+
   return {
     id:
       messageId,
@@ -172,7 +201,9 @@ function serializeMessage(
     roomSlug,
 
     text:
-      message.text || "",
+      isDeleted
+        ? DELETED_MESSAGE_TEXT
+        : message.text || "",
 
     user,
 
@@ -194,17 +225,33 @@ function serializeMessage(
       ),
 
     reactions:
-      serializeReactions(
-        message.reactions
-      ),
+      isDeleted
+        ? []
+        : serializeReactions(
+            message.reactions
+          ),
 
     isEdited:
+      !isDeleted &&
       Boolean(
         message.isEdited
       ),
 
     editedAt:
-      message.editedAt || null,
+      isDeleted
+        ? null
+        : message.editedAt ||
+          null,
+
+    isDeleted,
+
+    deletedAt:
+      message.deletedAt ||
+      null,
+
+    deletionType:
+      message.deletionType ||
+      null,
 
     createdAt:
       message.createdAt,
@@ -215,6 +262,7 @@ function serializeMessage(
 }
 
 module.exports = {
+  DELETED_MESSAGE_TEXT,
   serializeMessage,
   serializeReactions,
   serializeReply,

@@ -1,71 +1,33 @@
-const mongoose = require(
-  "mongoose"
-);
+const mongoose = require("mongoose");
 
-const Message = require(
-  "../../models/Message"
-);
+const Message = require("../../models/Message");
 
-const Room = require(
-  "../../models/Rooms"
-);
+const Room = require("../../models/Rooms");
 
-const {
-  getCurrentUser,
-  getUserSockets,
-} = require(
-  "../../utils/users"
-);
+const { getCurrentUser, getUserSockets } = require("../../utils/users");
 
-const {
-  MESSAGE_POPULATION,
-} = require(
-  "../services/messagePopulation"
-);
+const { MESSAGE_POPULATION } = require("../services/messagePopulation");
 
-const {
-  serializeMessage,
-} = require(
-  "../services/messageSerializer"
-);
+const { serializeMessage } = require("../services/messageSerializer");
 
-const {
-  getUserChannel,
-} = require(
-  "../services/userChannel"
-);
+const { getUserChannel } = require("../services/userChannel");
 
-function sendAcknowledgement(
-  acknowledgement,
-  payload
-) {
-  if (
-    typeof acknowledgement ===
-    "function"
-  ) {
+function sendAcknowledgement(acknowledgement, payload) {
+  if (typeof acknowledgement === "function") {
     acknowledgement(payload);
   }
 }
 
 function getMessageText(payload) {
-  if (
-    typeof payload === "string"
-  ) {
+  if (typeof payload === "string") {
     return payload.trim();
   }
 
-  return String(
-    payload?.text ||
-    payload?.message ||
-    ""
-  ).trim();
+  return String(payload?.text || payload?.message || "").trim();
 }
 
 function getReplyId(payload) {
-  if (
-    !payload ||
-    typeof payload !== "object"
-  ) {
+  if (!payload || typeof payload !== "object") {
     return null;
   }
 
@@ -78,209 +40,132 @@ function getReplyId(payload) {
   );
 }
 
-async function emitRoomActivity(
-  io,
-  user,
-  message
-) {
-  const room =
-    await Room.findById(
-      user.roomId
-    )
-      .select(
-        "name slug members.userId"
-      )
-      .lean();
+async function emitRoomActivity(io, user, message) {
+  const room = await Room.findById(user.roomId)
+    .select("name slug members.userId")
+    .lean();
 
   if (!room) {
     return;
   }
 
-  const messageId =
-    String(message._id);
+  const messageId = String(message._id);
 
-  const lastMessageAt =
-    message.createdAt;
+  const lastMessageAt = message.createdAt;
 
-  for (
-    const membership
-    of room.members
-  ) {
-    const memberUserId =
-      String(
-        membership.userId
-      );
+  for (const membership of room.members) {
+    const memberUserId = String(membership.userId);
 
-    const isSender =
-      memberUserId ===
-      String(user.userId);
+    const isSender = memberUserId === String(user.userId);
 
-    const activeSockets =
-      getUserSockets(
-        memberUserId
-      );
+    const activeSockets = getUserSockets(memberUserId);
 
-    const isViewingRoom =
-      activeSockets.some(
-        (activeUser) => {
-          return (
-            activeUser.roomId ===
-            String(room._id)
-          );
-        }
-      );
+    const isViewingRoom = activeSockets.some((activeUser) => {
+      return activeUser.roomId === String(room._id);
+    });
 
-    io.to(
-      getUserChannel(
-        memberUserId
-      )
-    ).emit(
-      "roomActivity",
-      {
-        roomId:
-          String(room._id),
+    io.to(getUserChannel(memberUserId)).emit("roomActivity", {
+      roomId: String(room._id),
 
-        roomSlug:
-          room.slug,
+      roomSlug: room.slug,
 
-        roomName:
-          room.name,
+      roomName: room.name,
 
-        messageId,
+      messageId,
 
-        lastMessageAt,
+      lastMessageAt,
 
-        senderId:
-          String(user.userId),
+      senderId: String(user.userId),
 
-        shouldIncrement:
-          !isSender &&
-          !isViewingRoom,
-      }
-    );
+      shouldIncrement: !isSender && !isViewingRoom,
+    });
   }
 }
 
 function sendMessage(io, socket) {
-  return async (
-    payload = {},
-    acknowledgement
-  ) => {
+  return async (payload = {}, acknowledgement) => {
     try {
-      const user =
-        getCurrentUser(
-          socket.id
-        );
+      const user = getCurrentUser(socket.id);
 
       if (!user) {
-        sendAcknowledgement(
-          acknowledgement,
-          {
-            ok: false,
+        sendAcknowledgement(acknowledgement, {
+          ok: false,
 
-            error:
-              "Join a room before sending a message.",
-          }
-        );
+          error: "Join a room before sending a message.",
+        });
 
         return;
       }
 
-      const text =
-        getMessageText(payload);
+      const text = getMessageText(payload);
 
       if (!text) {
-        sendAcknowledgement(
-          acknowledgement,
-          {
-            ok: false,
+        sendAcknowledgement(acknowledgement, {
+          ok: false,
 
-            error:
-              "Enter a message.",
-          }
-        );
+          error: "Enter a message.",
+        });
 
         return;
       }
 
       if (text.length > 4000) {
-        sendAcknowledgement(
-          acknowledgement,
-          {
-            ok: false,
+        sendAcknowledgement(acknowledgement, {
+          ok: false,
 
-            error:
-              "Messages cannot exceed 4000 characters.",
-          }
-        );
+          error: "Messages cannot exceed 4000 characters.",
+        });
 
         return;
       }
 
-      const replyId =
-        getReplyId(payload);
+      const replyId = getReplyId(payload);
 
       let replyTo = null;
 
       if (replyId) {
-        if (
-          !mongoose.isValidObjectId(
-            replyId
-          )
-        ) {
-          sendAcknowledgement(
-            acknowledgement,
-            {
-              ok: false,
+        if (!mongoose.isValidObjectId(replyId)) {
+          sendAcknowledgement(acknowledgement, {
+            ok: false,
 
-              error:
-                "The reply message is invalid.",
-            }
-          );
+            error: "The reply message is invalid.",
+          });
 
           return;
         }
 
-        const replyMessage =
-          await Message.findOne({
-            _id: replyId,
+        const replyMessage = await Message.findOne({
+          _id: replyId,
 
-            roomId:
-              user.roomId,
-          }).select("_id");
+          roomId: user.roomId,
+
+          isDeleted: false,
+        }).select("_id");
 
         if (!replyMessage) {
-          sendAcknowledgement(
-            acknowledgement,
-            {
-              ok: false,
+          sendAcknowledgement(acknowledgement, {
+            ok: false,
 
-              error:
-                "The reply message does not belong to this room.",
-            }
-          );
+            error: "The reply message does not belong to this room.",
+          });
 
           return;
         }
 
-        replyTo =
-          replyMessage._id;
+        replyTo = replyMessage._id;
       }
 
-      const message =
-        await Message.create({
-          roomId:
-            user.roomId,
+      const message = await Message.create({
+        roomId: user.roomId,
 
-          userId:
-            user.userId,
+        userId: user.userId,
 
-          text,
+        text,
 
-          replyTo,
+        replyTo,
 
-          reactions: [],
-        });
+        reactions: [],
+      });
 
       await Room.updateOne(
         {
@@ -288,76 +173,42 @@ function sendMessage(io, socket) {
         },
         {
           $set: {
-            lastMessageId:
-              message._id,
+            lastMessageId: message._id,
 
-            lastMessageAt:
-              message.createdAt,
+            lastMessageAt: message.createdAt,
           },
-        }
+        },
       );
 
-      await message.populate(
-        MESSAGE_POPULATION
-      );
+      await message.populate(MESSAGE_POPULATION);
 
-      const serializedMessage =
-        serializeMessage(
-          message,
-          {
-            id:
-              user.roomId,
+      const serializedMessage = serializeMessage(message, {
+        id: user.roomId,
 
-            name:
-              user.roomName,
+        name: user.roomName,
 
-            slug:
-              user.roomSlug,
-          }
-        );
+        slug: user.roomSlug,
+      });
 
-      io.to(
-        user.roomChannel
-      ).emit(
-        "message",
-        serializedMessage
-      );
+      io.to(user.roomChannel).emit("message", serializedMessage);
 
-      await emitRoomActivity(
-        io,
-        user,
-        message
-      );
+      await emitRoomActivity(io, user, message);
 
-      sendAcknowledgement(
-        acknowledgement,
-        {
-          ok: true,
+      sendAcknowledgement(acknowledgement, {
+        ok: true,
 
-          message:
-            serializedMessage,
-        }
-      );
+        message: serializedMessage,
+      });
     } catch (error) {
-      console.error(
-        "Send message error:",
-        error
-      );
+      console.error("Send message error:", error);
 
-      sendAcknowledgement(
-        acknowledgement,
-        {
-          ok: false,
+      sendAcknowledgement(acknowledgement, {
+        ok: false,
 
-          error:
-            "Unable to send the message.",
-        }
-      );
+        error: "Unable to send the message.",
+      });
 
-      socket.emit(
-        "messageError",
-        "Unable to send the message."
-      );
+      socket.emit("messageError", "Unable to send the message.");
     }
   };
 }

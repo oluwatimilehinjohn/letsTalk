@@ -12,7 +12,7 @@ const MESSAGE_POPULATION = [
     path: "replyTo",
 
     select:
-      "text userId createdAt",
+      "text userId createdAt isDeleted deletedAt",
 
     populate: {
       path: "userId",

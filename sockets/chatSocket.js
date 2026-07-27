@@ -6,6 +6,14 @@ const sendMessage = require(
   "./handlers/sendMessage"
 );
 
+const editMessage = require(
+  "./handlers/editMessage"
+);
+
+const deleteMessage = require(
+  "./handlers/deleteMessage"
+);
+
 const reactToMessage = require(
   "./handlers/reactToMessage"
 );
@@ -49,6 +57,22 @@ function registerChatSocket(io) {
       socket.on(
         "chatMessage",
         sendMessage(
+          io,
+          socket
+        )
+      );
+
+      socket.on(
+        "editMessage",
+        editMessage(
+          io,
+          socket
+        )
+      );
+
+      socket.on(
+        "deleteMessage",
+        deleteMessage(
           io,
           socket
         )
