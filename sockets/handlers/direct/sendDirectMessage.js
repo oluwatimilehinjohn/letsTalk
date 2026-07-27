@@ -1,7 +1,7 @@
 const {
   createDirectMessage,
 } = require(
-  "../../../services/directMessageRealtimeService"
+  "../../../services/directMessageRealTimeService"
 );
 
 const {
