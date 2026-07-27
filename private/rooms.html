@@ -5,21 +5,25 @@
 
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0"
+      content="width=device-width, initial-scale=1"
     />
+
+    <meta
+      name="description"
+      content="Browse and manage rooms on letsTalk"
+    />
+
+    <title>Rooms | letsTalk</title>
 
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
-      crossorigin="anonymous"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     />
 
     <link
       rel="stylesheet"
       href="/css/style.css"
     />
-
-    <title>Rooms | letsTalk</title>
   </head>
 
   <body>
@@ -28,18 +32,41 @@
         <a
           href="/rooms"
           class="brand-link"
+          aria-label="letsTalk rooms"
         >
           <i class="fas fa-comment-dots"></i>
 
           <span>letsTalk</span>
         </a>
 
-        <div class="room-header-actions">
+        <nav
+          class="room-header-actions"
+          aria-label="Account navigation"
+        >
           <a
             id="current-user"
             href="/profile"
           >
             Loading...
+          </a>
+
+          <a
+            id="messages-nav-button"
+            class="btn btn-secondary messages-nav-button"
+            href="/messages"
+          >
+            <i class="fas fa-envelope"></i>
+
+            <span>Messages</span>
+
+            <strong
+              id="messages-unread-badge"
+              class="messages-unread-badge"
+              aria-label="Unread direct messages"
+              hidden
+            >
+              0
+            </strong>
           </a>
 
           <a
@@ -56,11 +83,11 @@
             class="btn btn-danger"
             id="logout-btn"
           >
-            <i class="fas fa-sign-out-alt"></i>
+            <i class="fas fa-right-from-bracket"></i>
 
             <span>Log Out</span>
           </button>
-        </div>
+        </nav>
       </header>
 
       <section class="room-directory-hero">
@@ -87,7 +114,7 @@
           >
             <i class="fas fa-key"></i>
 
-            Join with code
+            <span>Join with code</span>
           </button>
 
           <button
@@ -97,14 +124,20 @@
           >
             <i class="fas fa-plus"></i>
 
-            Create room
+            <span>Create room</span>
           </button>
         </div>
       </section>
 
-      <section class="room-directory-toolbar">
-        <label class="room-search">
-          <i class="fas fa-search"></i>
+      <section
+        class="room-directory-toolbar"
+        aria-label="Room directory controls"
+      >
+        <label
+          class="room-search"
+          for="room-search-input"
+        >
+          <i class="fas fa-magnifying-glass"></i>
 
           <input
             type="search"
@@ -119,7 +152,7 @@
           class="btn btn-secondary"
           id="refresh-rooms-btn"
         >
-          <i class="fas fa-sync-alt"></i>
+          <i class="fas fa-rotate"></i>
 
           <span>Refresh</span>
         </button>
@@ -128,11 +161,14 @@
       <p
         id="room-directory-status"
         class="room-directory-status"
+        role="status"
+        aria-live="polite"
       ></p>
 
       <section
         id="room-list"
         class="room-grid"
+        aria-label="Available rooms"
         aria-live="polite"
       ></section>
 
@@ -151,7 +187,7 @@
       </section>
     </main>
 
-    <!-- Create room modal -->
+    <!-- Create-room modal -->
 
     <div
       id="create-room-modal"
@@ -188,7 +224,7 @@
             class="room-modal-close"
             aria-label="Close create room form"
           >
-            <i class="fas fa-times"></i>
+            <i class="fas fa-xmark"></i>
           </button>
         </header>
 
@@ -277,6 +313,8 @@
             <p
               id="create-room-status"
               class="room-directory-status"
+              role="status"
+              aria-live="polite"
             ></p>
           </div>
 
@@ -296,14 +334,14 @@
             >
               <i class="fas fa-plus"></i>
 
-              Create room
+              <span>Create room</span>
             </button>
           </footer>
         </form>
       </section>
     </div>
 
-    <!-- Join with invite code modal -->
+    <!-- Join-with-code modal -->
 
     <div
       id="join-invite-modal"
@@ -340,7 +378,7 @@
             class="room-modal-close"
             aria-label="Close invite form"
           >
-            <i class="fas fa-times"></i>
+            <i class="fas fa-xmark"></i>
           </button>
         </header>
 
@@ -350,19 +388,10 @@
               <i class="fas fa-key"></i>
             </div>
 
-            <div class="form-control">
-              <label for="invite-room-identifier">
-                Room name or room link
-              </label>
-
-              <input
-                type="text"
-                id="invite-room-identifier"
-                required
-                autocomplete="off"
-                placeholder="Example: private-developers"
-              />
-            </div>
+            <p class="invite-code-description">
+              Enter the invite code supplied by the
+              room owner or administrator.
+            </p>
 
             <div class="form-control">
               <label for="invite-room-code">
@@ -375,19 +404,19 @@
                 class="invite-code-input"
                 required
                 autocomplete="off"
-                maxlength="32"
-                placeholder="Enter invite code"
+                autocapitalize="characters"
+                spellcheck="false"
+                minlength="8"
+                maxlength="8"
+                placeholder="AB12CD34"
               />
             </div>
-
-            <p class="room-form-help">
-              Ask the room owner for the room name
-              and invite code.
-            </p>
 
             <p
               id="join-invite-status"
               class="room-directory-status"
+              role="status"
+              aria-live="polite"
             ></p>
           </div>
 
@@ -405,9 +434,9 @@
               class="btn"
               id="join-invite-submit"
             >
-              <i class="fas fa-sign-in-alt"></i>
+              <i class="fas fa-right-to-bracket"></i>
 
-              Join room
+              <span>Join room</span>
             </button>
           </footer>
         </form>
@@ -451,7 +480,7 @@
             class="room-modal-close"
             aria-label="Close invite code"
           >
-            <i class="fas fa-times"></i>
+            <i class="fas fa-xmark"></i>
           </button>
         </header>
 
@@ -491,10 +520,12 @@
           <p
             id="invite-code-status"
             class="room-directory-status"
+            role="status"
+            aria-live="polite"
           ></p>
 
           <div class="invite-code-warning">
-            <i class="fas fa-exclamation-triangle"></i>
+            <i class="fas fa-triangle-exclamation"></i>
 
             <p>
               Generating a new code immediately
@@ -517,9 +548,9 @@
             class="btn"
             id="generate-invite-code-btn"
           >
-            <i class="fas fa-sync-alt"></i>
+            <i class="fas fa-rotate"></i>
 
-            Generate new code
+            <span>Generate new code</span>
           </button>
 
           <button
@@ -533,7 +564,9 @@
         </footer>
       </section>
     </div>
+
     <script src="/socket.io/socket.io.js"></script>
+
     <script
       type="module"
       src="/js/rooms/index.js"

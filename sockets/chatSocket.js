@@ -22,29 +22,44 @@ const disconnectUser = require(
   "./handlers/disconnectUser"
 );
 
+const registerDirectMessageSocket =
+  require(
+    "./directMessageSocket"
+  );
+
 const {
   getUserChannel,
 } = require(
   "./services/userChannel"
 );
 
+const {
+  getSocketUserId,
+} = require(
+  "./services/socketAuth"
+);
+
 function registerChatSocket(io) {
   io.on(
     "connection",
     (socket) => {
-      const authenticatedUser =
-        socket.data
-          .authenticatedUser;
+      const userId =
+        getSocketUserId(
+          socket
+        );
 
-      if (
-        authenticatedUser?.id
-      ) {
+      if (userId) {
         socket.join(
           getUserChannel(
-            authenticatedUser.id
+            userId
           )
         );
       }
+
+      registerDirectMessageSocket(
+        io,
+        socket
+      );
 
       socket.on(
         "joinRoom",

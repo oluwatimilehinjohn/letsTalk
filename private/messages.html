@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+
+    <meta
+      name="description"
+      content="Private direct messages on letsTalk"
+    />
+
+    <title>Messages | letsTalk</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="/css/style.css"
+    />
+  </head>
+
+  <body class="direct-messages-page">
+    <main class="dm-page">
+      <header class="dm-topbar">
+        <a
+          class="dm-brand"
+          href="/rooms"
+        >
+          <span class="dm-brand-icon">
+            <i class="fas fa-comment-dots"></i>
+          </span>
+
+          <span>letsTalk</span>
+        </a>
+
+        <nav
+          class="dm-topbar-actions"
+          aria-label="Account navigation"
+        >
+          <span
+            id="dm-current-user"
+            class="dm-current-user"
+          ></span>
+
+          <a
+            class="btn btn-secondary"
+            href="/rooms"
+          >
+            <i class="fas fa-comments"></i>
+
+            <span>Rooms</span>
+          </a>
+
+          <a
+            class="btn btn-secondary"
+            href="/profile"
+          >
+            <i class="fas fa-user"></i>
+
+            <span>Profile</span>
+          </a>
+
+          <button
+            id="dm-logout-button"
+            class="btn btn-secondary"
+            type="button"
+          >
+            <i class="fas fa-right-from-bracket"></i>
+
+            <span>Logout</span>
+          </button>
+        </nav>
+      </header>
+
+      <section
+        id="dm-shell"
+        class="dm-shell"
+      >
+        <aside class="dm-sidebar">
+          <div class="dm-sidebar-header">
+            <div>
+              <p class="dm-eyebrow">
+                Private conversations
+              </p>
+
+              <h1>Messages</h1>
+            </div>
+
+            <button
+              id="dm-new-conversation-button"
+              class="dm-icon-button"
+              type="button"
+              aria-label="Focus user search"
+              title="Start a conversation"
+            >
+              <i class="fas fa-pen-to-square"></i>
+            </button>
+          </div>
+
+          <section
+            id="dm-search-panel"
+            class="dm-search-panel"
+          >
+            <div class="dm-search-header">
+              <label for="dm-user-search">
+                Find someone
+              </label>
+
+              <button
+                id="dm-close-search-button"
+                class="dm-search-close"
+                type="button"
+                aria-label="Clear user search"
+                title="Clear search"
+              >
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+
+            <div class="dm-search-control">
+              <i class="fas fa-magnifying-glass"></i>
+
+              <input
+                id="dm-user-search"
+                type="search"
+                autocomplete="off"
+                maxlength="50"
+                placeholder="Search username or name"
+              />
+            </div>
+
+            <p
+              id="dm-search-status"
+              class="dm-search-status"
+              role="status"
+              aria-live="polite"
+            >
+              Enter at least two characters.
+            </p>
+
+            <div
+              id="dm-search-results"
+              class="dm-search-results"
+            ></div>
+          </section>
+
+          <div
+            id="dm-conversation-list"
+            class="dm-conversation-list"
+          ></div>
+
+          <div
+            id="dm-conversation-empty"
+            class="dm-conversation-empty"
+            hidden
+          >
+            <i class="far fa-comment-dots"></i>
+
+            <h2>No conversations yet</h2>
+
+            <p>
+              Search for another user to start a
+              private conversation.
+            </p>
+
+            <button
+              id="dm-empty-new-button"
+              class="btn"
+              type="button"
+            >
+              Start a conversation
+            </button>
+          </div>
+        </aside>
+
+        <section class="dm-chat">
+          <div
+            id="dm-chat-empty"
+            class="dm-chat-empty"
+          >
+            <div class="dm-chat-empty-icon">
+              <i class="far fa-comments"></i>
+            </div>
+
+            <h2>Your private conversations</h2>
+
+            <p>
+              Choose a conversation or start a new
+              one.
+            </p>
+          </div>
+
+          <div
+            id="dm-chat-active"
+            class="dm-chat-active"
+            hidden
+          >
+            <header class="dm-chat-header">
+              <button
+                id="dm-mobile-back-button"
+                class="dm-mobile-back"
+                type="button"
+                aria-label="Return to conversations"
+              >
+                <i class="fas fa-arrow-left"></i>
+              </button>
+
+              <div
+                id="dm-active-avatar"
+                class="dm-active-avatar"
+              ></div>
+
+              <div class="dm-active-user">
+                <h2 id="dm-active-name"></h2>
+
+                <div class="dm-active-meta">
+                  <span
+                    id="dm-active-username"
+                  ></span>
+
+                  <span
+                    id="dm-active-presence"
+                    class="dm-active-presence"
+                  >
+                    Offline
+                  </span>
+                </div>
+              </div>
+            </header>
+
+            <div class="dm-message-area">
+              <button
+                id="dm-load-older-button"
+                class="dm-load-older"
+                type="button"
+                hidden
+              >
+                Load older messages
+              </button>
+
+              <div
+                id="dm-message-list"
+                class="dm-message-list"
+                aria-live="polite"
+              ></div>
+
+              <div
+                id="dm-typing-indicator"
+                class="dm-typing-indicator"
+                hidden
+              >
+                <span></span>
+                <span></span>
+                <span></span>
+
+                <strong>Typing</strong>
+              </div>
+            </div>
+
+            <form
+              id="dm-composer"
+              class="dm-composer"
+            >
+              <textarea
+                id="dm-message-input"
+                rows="1"
+                maxlength="4000"
+                placeholder="Write a message"
+                disabled
+              ></textarea>
+
+              <button
+                id="dm-send-button"
+                class="dm-send-button"
+                type="submit"
+                disabled
+                aria-label="Send message"
+              >
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </form>
+
+            <p
+              id="dm-page-status"
+              class="dm-page-status"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script
+      type="module"
+      src="/js/direct-messages/index.js"
+    ></script>
+  </body>
+</html>
