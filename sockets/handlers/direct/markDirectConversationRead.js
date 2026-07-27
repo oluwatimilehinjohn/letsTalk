@@ -1,7 +1,7 @@
 const {
   markDirectConversationRead,
 } = require(
-  "../../../services/directMessageRealtimeService"
+  "../../../services/directMessageRealTimeService"
 );
 
 const {

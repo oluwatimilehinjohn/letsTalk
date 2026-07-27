@@ -1,7 +1,7 @@
 const {
   createConversationSnapshots,
 } = require(
-  "../../services/directMessageRealtimeService"
+  "../../services/directMessageRealTimeService"
 );
 
 const {
