@@ -25,6 +25,12 @@ const {
 );
 
 const {
+  getRoomChannel,
+} = require(
+  "../services/roomChannel"
+);
+
+const {
   MESSAGE_POPULATION,
 } = require(
   "../services/messagePopulation"
@@ -42,15 +48,24 @@ const sendWelcomeOnce = require(
 
 function emitRoomUsers(
   io,
-  roomName
+  user
 ) {
-  io.to(roomName).emit(
+  io.to(user.roomChannel).emit(
     "roomUsers",
     {
-      room: roomName,
+      room:
+        user.roomName,
+
+      roomId:
+        user.roomId,
+
+      roomSlug:
+        user.roomSlug,
 
       users:
-        getRoomUsers(roomName),
+        getRoomUsers(
+          user.roomId
+        ),
     }
   );
 }
@@ -59,25 +74,28 @@ function leavePreviousRoom(
   io,
   socket,
   previousUser,
-  newRoomName
+  nextRoomId
 ) {
+  if (!previousUser) {
+    return;
+  }
+
   if (
-    !previousUser ||
-    previousUser.room ===
-      newRoomName
+    previousUser.roomId ===
+    String(nextRoomId)
   ) {
     return;
   }
 
   socket.leave(
-    previousUser.room
+    previousUser.roomChannel
   );
 
   userLeave(socket.id);
 
   emitRoomUsers(
     io,
-    previousUser.room
+    previousUser
   );
 }
 
@@ -102,26 +120,33 @@ function joinRoom(io, socket) {
         return;
       }
 
-      await ensureRoomMembership(
-        roomDocument,
-        authenticatedUser.id
-      );
+      const joinedRoom =
+        await ensureRoomMembership(
+          roomDocument,
+          authenticatedUser.id
+        );
 
-      const roomName =
-        roomDocument.name;
+      const roomId =
+        String(joinedRoom._id);
+
+      const roomChannel =
+        getRoomChannel(roomId);
 
       const previousUser =
-        getCurrentUser(socket.id);
+        getCurrentUser(
+          socket.id
+        );
 
       leavePreviousRoom(
         io,
         socket,
         previousUser,
-        roomName
+        roomId
       );
 
       const user = userJoin({
-        socketId: socket.id,
+        socketId:
+          socket.id,
 
         userId:
           authenticatedUser.id,
@@ -135,14 +160,31 @@ function joinRoom(io, socket) {
         avatarUrl:
           authenticatedUser.avatarUrl,
 
-        room: roomName,
+        roomId,
+
+        roomName:
+          joinedRoom.name,
+
+        roomSlug:
+          joinedRoom.slug,
+
+        roomChannel,
       });
 
-      socket.join(user.room);
+      socket.data.currentRoomId =
+        roomId;
+
+      socket.data.currentRoomChannel =
+        roomChannel;
+
+      socket.join(
+        roomChannel
+      );
 
       const messages =
         await Message.find({
-          room: user.room,
+          roomId:
+            joinedRoom._id,
         })
           .sort({
             createdAt: -1,
@@ -155,21 +197,37 @@ function joinRoom(io, socket) {
           )
           .lean();
 
+      const roomContext = {
+        id:
+          joinedRoom._id,
+
+        name:
+          joinedRoom.name,
+
+        slug:
+          joinedRoom.slug,
+      };
+
       socket.emit(
         "messageHistory",
         messages
           .reverse()
-          .map(serializeMessage)
+          .map((message) => {
+            return serializeMessage(
+              message,
+              roomContext
+            );
+          })
       );
 
       await sendWelcomeOnce(
         socket,
-        user.room
+        roomContext
       );
 
       emitRoomUsers(
         io,
-        user.room
+        user
       );
     } catch (error) {
       console.error(
@@ -181,13 +239,21 @@ function joinRoom(io, socket) {
         userLeave(socket.id);
 
       if (user) {
-        socket.leave(user.room);
+        socket.leave(
+          user.roomChannel
+        );
       }
+
+      socket.data.currentRoomId =
+        null;
+
+      socket.data.currentRoomChannel =
+        null;
 
       socket.emit(
         "joinError",
         error.message ||
-          "Unable to join this room."
+        "Unable to join this room."
       );
     }
   };

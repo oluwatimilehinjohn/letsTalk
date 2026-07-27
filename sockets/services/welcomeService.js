@@ -1,7 +1,3 @@
-const formatMessage = require(
-  "../../utils/messages"
-);
-
 const {
   BOT_NAME,
 } = require("../../config/chat");
@@ -28,31 +24,100 @@ async function sendWelcomeOnce(
   const session =
     socket.request.session;
 
-  const welcomedRooms =
-    Array.isArray(
-      session.welcomedRooms
-    )
-      ? session.welcomedRooms
-      : [];
-
-  if (welcomedRooms.includes(room)) {
+  if (!session) {
     return;
   }
 
-  socket.emit(
-    "message",
-    formatMessage(
-      BOT_NAME,
-      "Welcome to letsTalk!"
+  const roomId =
+    String(
+      room.id ||
+      room._id ||
+      ""
+    );
+
+  if (!roomId) {
+    return;
+  }
+
+  if (
+    !Array.isArray(
+      session.welcomedRooms
     )
+  ) {
+    session.welcomedRooms = [];
+  }
+
+  if (
+    session.welcomedRooms.includes(
+      roomId
+    )
+  ) {
+    return;
+  }
+
+  session.welcomedRooms.push(
+    roomId
   );
 
-  session.welcomedRooms = [
-    ...welcomedRooms,
-    room,
-  ].slice(-20);
+  try {
+    await saveSession(session);
+  } catch (error) {
+    console.error(
+      "Unable to save welcome state:",
+      error
+    );
+  }
 
-  await saveSession(session);
+  const now =
+    new Date().toISOString();
+
+  socket.emit("message", {
+    id:
+      `welcome-${roomId}-${Date.now()}`,
+
+    _id:
+      `welcome-${roomId}-${Date.now()}`,
+
+    roomId,
+
+    room:
+      room.name,
+
+    roomName:
+      room.name,
+
+    roomSlug:
+      room.slug,
+
+    text:
+      `Welcome to ${room.name}!`,
+
+    user: null,
+
+    userId: null,
+
+    username:
+      BOT_NAME,
+
+    displayName:
+      BOT_NAME,
+
+    avatarUrl: "",
+
+    replyTo: null,
+
+    reactions: [],
+
+    isBot: true,
+
+    isEdited: false,
+
+    editedAt: null,
+
+    createdAt: now,
+
+    updatedAt: now,
+  });
 }
 
 module.exports = sendWelcomeOnce;

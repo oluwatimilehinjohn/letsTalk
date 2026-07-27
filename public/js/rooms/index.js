@@ -1,4 +1,16 @@
 import {
+  state,
+} from "./state.js";
+
+import {
+  dom,
+} from "./dom.js";
+
+import {
+  fetchCurrentUser,
+} from "./api.js";
+
+import {
   bindDirectory,
   loadRooms,
 } from "./directory.js";
@@ -13,33 +25,95 @@ import {
 
 import {
   bindNavigation,
-  loadCurrentUser,
 } from "./navigation.js";
 
-bindDirectory();
-bindCreateRoom();
-bindInviteRoom();
-bindNavigation();
+import {
+  bindUnreadUpdates,
+} from "./unread.js";
 
-async function startRoomDirectory() {
-  try {
-    const user =
-      await loadCurrentUser();
+import {
+  initializeDirectMessageBadge,
+} from "./directMessages.js";
 
-    if (!user) {
-      window.location.replace("/");
-      return;
-    }
+function normalizeCurrentUser(
+  result
+) {
+  return (
+    result?.user ||
+    result?.currentUser ||
+    result
+  );
+}
 
-    await loadRooms();
-  } catch (error) {
-    console.error(
-      "Room directory startup error:",
-      error
-    );
+function renderCurrentUser() {
+  const user =
+    state.currentUser;
 
-    window.location.replace("/");
+  if (!user) {
+    dom.currentUser.textContent =
+      "";
+
+    return;
+  }
+
+  dom.currentUser.textContent =
+    user.displayName ||
+    user.username ||
+    "Profile";
+
+  if (user.username) {
+    dom.currentUser.title =
+      `@${user.username}`;
   }
 }
 
-startRoomDirectory();
+async function initializeRoomsPage() {
+  try {
+    const authResult =
+      await fetchCurrentUser();
+
+    if (!authResult) {
+      window.location.href =
+        "/";
+
+      return;
+    }
+
+    state.currentUser =
+      normalizeCurrentUser(
+        authResult
+      );
+
+    renderCurrentUser();
+
+    bindDirectory();
+    bindCreateRoom();
+    bindInviteRoom();
+    bindNavigation();
+    bindUnreadUpdates();
+
+    await Promise.all([
+      loadRooms(),
+
+      initializeDirectMessageBadge(),
+    ]);
+  } catch (error) {
+    console.error(
+      "Room directory initialization error:",
+      error
+    );
+
+    if (
+      dom.directoryStatus
+    ) {
+      dom.directoryStatus.textContent =
+        error.message ||
+        "Unable to load the room directory.";
+
+      dom.directoryStatus.dataset.type =
+        "error";
+    }
+  }
+}
+
+initializeRoomsPage();

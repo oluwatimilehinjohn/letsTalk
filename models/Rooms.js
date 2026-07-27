@@ -1,165 +1,139 @@
 const mongoose = require("mongoose");
 
-const roomMemberSchema =
-  new mongoose.Schema(
-    {
-      userId: {
-        type:
-          mongoose.Schema.Types
-            .ObjectId,
-
-        ref: "User",
-
-        required: true,
-      },
-
-      role: {
-        type: String,
-
-        enum: [
-          "owner",
-          "admin",
-          "member",
-        ],
-
-        default: "member",
-      },
-
-      joinedAt: {
-        type: Date,
-
-        default: Date.now,
-      },
+const roomMemberSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    {
-      _id: false,
-    }
-  );
 
-const roomSchema =
-  new mongoose.Schema(
-    {
-      name: {
-        type: String,
-
-        required: true,
-
-        trim: true,
-
-        minlength: 2,
-
-        maxlength: 50,
-      },
-
-      nameLower: {
-        type: String,
-
-        required: true,
-
-        unique: true,
-
-        index: true,
-      },
-
-      slug: {
-        type: String,
-
-        required: true,
-
-        unique: true,
-
-        index: true,
-      },
-
-      description: {
-        type: String,
-
-        trim: true,
-
-        maxlength: 160,
-
-        default: "",
-      },
-
-      visibility: {
-        type: String,
-
-        enum: [
-          "public",
-          "private",
-        ],
-
-        default: "public",
-
-        index: true,
-      },
-
-      joinPolicy: {
-        type: String,
-
-        enum: [
-          "open",
-          "invite",
-        ],
-
-        default: "open",
-      },
-
-      inviteCodeHash: {
-        type: String,
-
-        default: null,
-
-        select: false,
-
-        index: true,
-      },
-
-      inviteCodeCreatedAt: {
-        type: Date,
-
-        default: null,
-      },
-
-      createdBy: {
-        type:
-          mongoose.Schema.Types
-            .ObjectId,
-
-        ref: "User",
-
-        default: null,
-      },
-
-      members: {
-        type: [roomMemberSchema],
-
-        default: [],
-      },
-
-      isSystem: {
-        type: Boolean,
-
-        default: false,
-      },
-
-      isArchived: {
-        type: Boolean,
-
-        default: false,
-
-        index: true,
-      },
+    role: {
+      type: String,
+      enum: ["owner", "admin", "member"],
+      default: "member",
     },
-    {
-      timestamps: true,
-    }
-  );
+
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+    },
+
+    lastReadMessageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+      default: null,
+    },
+
+    lastReadAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+const roomSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
+    },
+
+    nameLower: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
+    description: {
+      type: String,
+      trim: true,
+      maxlength: 160,
+      default: "",
+    },
+
+    visibility: {
+      type: String,
+      enum: ["public", "private"],
+      default: "public",
+      index: true,
+    },
+
+    joinPolicy: {
+      type: String,
+      enum: ["open", "invite"],
+      default: "open",
+    },
+
+    inviteCodeHash: {
+      type: String,
+      default: null,
+      select: false,
+      index: true,
+    },
+
+    inviteCodeCreatedAt: {
+      type: Date,
+      default: null,
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    members: {
+      type: [roomMemberSchema],
+      default: [],
+    },
+
+    lastMessageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+      default: null,
+    },
+
+    lastMessageAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+
+    isSystem: {
+      type: Boolean,
+      default: false,
+    },
+
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 roomSchema.index({
   visibility: 1,
   isArchived: 1,
-  name: 1,
+  lastMessageAt: -1,
 });
 
 roomSchema.index({
@@ -173,9 +147,7 @@ roomSchema.pre(
       return;
     }
 
-    this.name =
-      this.name.trim();
-
+    this.name = this.name.trim();
     this.nameLower =
       this.name.toLowerCase();
   }

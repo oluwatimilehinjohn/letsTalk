@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+      crossorigin="anonymous"
+    />
+
+    <link
+      rel="stylesheet"
+      href="/css/style.css"
+    />
+
+    <title>Room Settings | letsTalk</title>
+  </head>
+
+  <body>
+    <main class="room-settings-page">
+      <header class="room-settings-header">
+        <a
+          href="/rooms"
+          class="brand-link"
+        >
+          <i class="fas fa-comment-dots"></i>
+
+          <span>letsTalk</span>
+        </a>
+
+        <div class="room-settings-header-actions">
+          <a
+            id="settings-current-user"
+            href="/profile"
+          >
+            Loading...
+          </a>
+
+          <a
+            href="/rooms"
+            class="btn btn-secondary"
+          >
+            <i class="fas fa-arrow-left"></i>
+
+            <span>Rooms</span>
+          </a>
+
+          <button
+            type="button"
+            class="btn btn-danger"
+            id="settings-logout-btn"
+          >
+            <i class="fas fa-sign-out-alt"></i>
+
+            <span>Log Out</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="room-settings-hero">
+        <div>
+          <p class="room-eyebrow">
+            Room management
+          </p>
+
+          <div class="room-settings-title-row">
+            <h1 id="settings-room-title">
+              Loading room...
+            </h1>
+
+            <span
+              id="settings-role-badge"
+              class="room-badge"
+            ></span>
+          </div>
+
+          <p id="settings-room-description">
+            Loading room information...
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="btn"
+          id="settings-enter-room-btn"
+        >
+          <i class="fas fa-arrow-right"></i>
+
+          Enter room
+        </button>
+      </section>
+
+      <p
+        id="settings-page-status"
+        class="room-directory-status"
+      ></p>
+
+      <div class="room-settings-layout">
+        <section class="room-settings-card">
+          <header class="room-settings-card-header">
+            <div>
+              <p class="room-eyebrow">
+                Room information
+              </p>
+
+              <h2>General settings</h2>
+            </div>
+
+            <i class="fas fa-cog"></i>
+          </header>
+
+          <form id="room-settings-form">
+            <div class="room-settings-card-body">
+              <div class="form-control">
+                <label for="settings-room-name">
+                  Room name
+                </label>
+
+                <input
+                  type="text"
+                  id="settings-room-name"
+                  minlength="2"
+                  maxlength="50"
+                  required
+                />
+              </div>
+
+              <div class="form-control">
+                <label for="settings-room-description-input">
+                  Description
+                </label>
+
+                <textarea
+                  id="settings-room-description-input"
+                  rows="4"
+                  maxlength="160"
+                ></textarea>
+
+                <small
+                  id="settings-description-counter"
+                >
+                  0/160
+                </small>
+              </div>
+
+              <div class="room-form-grid">
+                <div class="form-control">
+                  <label for="settings-room-visibility">
+                    Visibility
+                  </label>
+
+                  <select
+                    id="settings-room-visibility"
+                  >
+                    <option value="public">
+                      Public
+                    </option>
+
+                    <option value="private">
+                      Private
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-control">
+                  <label for="settings-room-join-policy">
+                    Joining
+                  </label>
+
+                  <select
+                    id="settings-room-join-policy"
+                  >
+                    <option value="open">
+                      Anyone can join
+                    </option>
+
+                    <option value="invite">
+                      Invitation required
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <p
+                id="owner-settings-help"
+                class="room-form-help"
+              >
+                Only the owner can change room
+                visibility and joining rules.
+              </p>
+            </div>
+
+            <footer class="room-settings-card-actions">
+              <button
+                type="submit"
+                class="btn"
+                id="save-room-settings-btn"
+              >
+                <i class="fas fa-save"></i>
+
+                Save changes
+              </button>
+            </footer>
+          </form>
+        </section>
+
+        <section
+          id="invite-settings-section"
+          class="room-settings-card"
+        >
+          <header class="room-settings-card-header">
+            <div>
+              <p class="room-eyebrow">
+                Invitations
+              </p>
+
+              <h2>Invite code</h2>
+            </div>
+
+            <i class="fas fa-key"></i>
+          </header>
+
+          <div class="room-settings-card-body">
+            <p class="room-settings-muted">
+              Generate a new code to invite people
+              to this room. Generating another code
+              invalidates the previous one.
+            </p>
+
+            <div
+              id="settings-invite-result"
+              class="invite-code-result"
+              hidden
+            >
+              <span
+                id="settings-invite-code"
+                class="invite-code-value"
+              ></span>
+
+              <button
+                type="button"
+                id="settings-copy-invite-btn"
+                class="invite-code-copy"
+                aria-label="Copy invite code"
+              >
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+
+            <p
+              id="settings-invite-status"
+              class="room-directory-status"
+            ></p>
+          </div>
+
+          <footer class="room-settings-card-actions">
+            <button
+              type="button"
+              class="btn"
+              id="settings-generate-invite-btn"
+            >
+              <i class="fas fa-sync-alt"></i>
+
+              Generate new code
+            </button>
+          </footer>
+        </section>
+
+        <section class="room-settings-card room-settings-card-wide">
+          <header class="room-settings-card-header">
+            <div>
+              <p class="room-eyebrow">
+                Community
+              </p>
+
+              <h2>Room members</h2>
+            </div>
+
+            <span id="settings-member-count">
+              0 members
+            </span>
+          </header>
+
+          <div
+            id="settings-member-list"
+            class="room-member-management-list"
+          ></div>
+        </section>
+
+        <section
+          id="ownership-settings-section"
+          class="room-settings-card"
+        >
+          <header class="room-settings-card-header">
+            <div>
+              <p class="room-eyebrow">
+                Ownership
+              </p>
+
+              <h2>Transfer ownership</h2>
+            </div>
+
+            <i class="fas fa-crown"></i>
+          </header>
+
+          <form id="transfer-ownership-form">
+            <div class="room-settings-card-body">
+              <p class="room-settings-muted">
+                The selected member becomes the new
+                owner. You will become an admin.
+              </p>
+
+              <div class="form-control">
+                <label for="ownership-user-select">
+                  New owner
+                </label>
+
+                <select
+                  id="ownership-user-select"
+                  required
+                >
+                  <option value="">
+                    Select a member
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <footer class="room-settings-card-actions">
+              <button
+                type="submit"
+                class="btn"
+                id="transfer-ownership-btn"
+              >
+                <i class="fas fa-exchange-alt"></i>
+
+                Transfer ownership
+              </button>
+            </footer>
+          </form>
+        </section>
+
+        <section class="room-settings-card room-danger-card">
+          <header class="room-settings-card-header">
+            <div>
+              <p class="room-eyebrow">
+                Danger zone
+              </p>
+
+              <h2>Room access</h2>
+            </div>
+
+            <i class="fas fa-exclamation-triangle"></i>
+          </header>
+
+          <div class="room-settings-card-body">
+            <div
+              id="leave-room-row"
+              class="room-danger-row"
+            >
+              <div>
+                <h3>Leave room</h3>
+
+                <p>
+                  Remove yourself from this room.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-danger"
+                id="settings-leave-room-btn"
+              >
+                Leave room
+              </button>
+            </div>
+
+            <div
+              id="archive-room-row"
+              class="room-danger-row"
+            >
+              <div>
+                <h3>Archive room</h3>
+
+                <p>
+                  Hide the room and prevent further
+                  access.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-danger"
+                id="settings-archive-room-btn"
+              >
+                Archive room
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script
+      type="module"
+      src="/js/room-settings/index.js"
+    ></script>
+  </body>
+</html>

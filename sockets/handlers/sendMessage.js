@@ -1,164 +1,214 @@
 const mongoose = require("mongoose");
 
-const Message = require(
-  "../../models/Message"
-);
+const Message = require("../../models/Message");
 
-const {
-  getCurrentUser,
-} = require("../../utils/users");
+const Room = require("../../models/Rooms");
 
-const {
-  populateMessage,
-} = require(
-  "../services/messagePopulation"
-);
+const { getCurrentUser, getUserSockets } = require("../../utils/users");
 
-const {
-  serializeMessage,
-} = require(
-  "../services/messageSerializer"
-);
+const { MESSAGE_POPULATION } = require("../services/messagePopulation");
 
-function getCallback(callback) {
-  return typeof callback === "function"
-    ? callback
-    : () => {};
+const { serializeMessage } = require("../services/messageSerializer");
+
+const { getUserChannel } = require("../services/userChannel");
+
+function sendAcknowledgement(acknowledgement, payload) {
+  if (typeof acknowledgement === "function") {
+    acknowledgement(payload);
+  }
 }
 
 function getMessageText(payload) {
   if (typeof payload === "string") {
-    return payload;
+    return payload.trim();
   }
 
-  return payload?.text;
+  return String(payload?.text || payload?.message || "").trim();
 }
 
-async function validateReply(
-  replyToId,
-  room
-) {
-  if (!replyToId) {
+function getReplyId(payload) {
+  if (!payload || typeof payload !== "object") {
     return null;
   }
 
-  if (
-    !mongoose.isValidObjectId(
-      replyToId
-    )
-  ) {
-    throw new Error(
-      "The selected reply is invalid."
-    );
+  return (
+    payload.replyToId ||
+    payload.replyTo?._id ||
+    payload.replyTo?.id ||
+    payload.replyTo ||
+    null
+  );
+}
+
+async function emitRoomActivity(io, user, message) {
+  const room = await Room.findById(user.roomId)
+    .select("name slug members.userId")
+    .lean();
+
+  if (!room) {
+    return;
   }
 
-  const replyTarget =
-    await Message.findOne({
-      _id: replyToId,
-      room,
-    })
-      .select("_id")
-      .lean();
+  const messageId = String(message._id);
 
-  if (!replyTarget) {
-    throw new Error(
-      "The original message could not be found."
-    );
+  const lastMessageAt = message.createdAt;
+
+  for (const membership of room.members) {
+    const memberUserId = String(membership.userId);
+
+    const isSender = memberUserId === String(user.userId);
+
+    const activeSockets = getUserSockets(memberUserId);
+
+    const isViewingRoom = activeSockets.some((activeUser) => {
+      return activeUser.roomId === String(room._id);
+    });
+
+    io.to(getUserChannel(memberUserId)).emit("roomActivity", {
+      roomId: String(room._id),
+
+      roomSlug: room.slug,
+
+      roomName: room.name,
+
+      messageId,
+
+      lastMessageAt,
+
+      senderId: String(user.userId),
+
+      shouldIncrement: !isSender && !isViewingRoom,
+    });
   }
-
-  return replyTarget._id;
 }
 
 function sendMessage(io, socket) {
-  return async (
-    payload,
-    callback
-  ) => {
-    const respond =
-      getCallback(callback);
-
+  return async (payload = {}, acknowledgement) => {
     try {
-      const roomUser =
-        getCurrentUser(socket.id);
+      const user = getCurrentUser(socket.id);
 
-      const authenticatedUser =
-        socket.data.authenticatedUser;
+      if (!user) {
+        sendAcknowledgement(acknowledgement, {
+          ok: false,
 
-      if (!roomUser) {
-        throw new Error(
-          "Join a room before sending messages."
-        );
-      }
-
-      const rawText =
-        getMessageText(payload);
-
-      if (typeof rawText !== "string") {
-        throw new Error(
-          "Enter a valid message."
-        );
-      }
-
-      const text = rawText.trim();
-
-      if (!text) {
-        throw new Error(
-          "The message cannot be empty."
-        );
-      }
-
-      if (text.length > 1000) {
-        throw new Error(
-          "Messages cannot exceed 1,000 characters."
-        );
-      }
-
-      const replyTo =
-        await validateReply(
-          payload?.replyToId,
-          roomUser.room
-        );
-
-      const message =
-        await Message.create({
-          userId:
-            authenticatedUser.id,
-
-          username:
-            authenticatedUser.username,
-
-          room: roomUser.room,
-
-          text,
-
-          replyTo,
+          error: "Join a room before sending a message.",
         });
 
-      await populateMessage(message);
+        return;
+      }
 
-      io.to(roomUser.room).emit(
-        "message",
-        serializeMessage(message)
+      const text = getMessageText(payload);
+
+      if (!text) {
+        sendAcknowledgement(acknowledgement, {
+          ok: false,
+
+          error: "Enter a message.",
+        });
+
+        return;
+      }
+
+      if (text.length > 4000) {
+        sendAcknowledgement(acknowledgement, {
+          ok: false,
+
+          error: "Messages cannot exceed 4000 characters.",
+        });
+
+        return;
+      }
+
+      const replyId = getReplyId(payload);
+
+      let replyTo = null;
+
+      if (replyId) {
+        if (!mongoose.isValidObjectId(replyId)) {
+          sendAcknowledgement(acknowledgement, {
+            ok: false,
+
+            error: "The reply message is invalid.",
+          });
+
+          return;
+        }
+
+        const replyMessage = await Message.findOne({
+          _id: replyId,
+
+          roomId: user.roomId,
+
+          isDeleted: false,
+        }).select("_id");
+
+        if (!replyMessage) {
+          sendAcknowledgement(acknowledgement, {
+            ok: false,
+
+            error: "The reply message does not belong to this room.",
+          });
+
+          return;
+        }
+
+        replyTo = replyMessage._id;
+      }
+
+      const message = await Message.create({
+        roomId: user.roomId,
+
+        userId: user.userId,
+
+        text,
+
+        replyTo,
+
+        reactions: [],
+      });
+
+      await Room.updateOne(
+        {
+          _id: user.roomId,
+        },
+        {
+          $set: {
+            lastMessageId: message._id,
+
+            lastMessageAt: message.createdAt,
+          },
+        },
       );
 
-      respond({
+      await message.populate(MESSAGE_POPULATION);
+
+      const serializedMessage = serializeMessage(message, {
+        id: user.roomId,
+
+        name: user.roomName,
+
+        slug: user.roomSlug,
+      });
+
+      io.to(user.roomChannel).emit("message", serializedMessage);
+
+      await emitRoomActivity(io, user, message);
+
+      sendAcknowledgement(acknowledgement, {
         ok: true,
-        messageId:
-          message._id.toString(),
+
+        message: serializedMessage,
       });
     } catch (error) {
-      console.error(
-        "Message save error:",
-        error
-      );
+      console.error("Send message error:", error);
 
-      respond({
+      sendAcknowledgement(acknowledgement, {
         ok: false,
 
-        error:
-          error.message ||
-          "Your message could not be saved.",
+        error: "Unable to send the message.",
       });
+
+      socket.emit("messageError", "Unable to send the message.");
     }
   };
 }

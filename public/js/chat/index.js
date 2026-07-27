@@ -40,6 +40,10 @@ import {
   bindNavigation,
 } from "./navigation.js";
 
+import {
+  startReadTracking,
+} from "./readTracking.js";
+
 if (!state.room) {
   window.location.replace("/rooms");
 } else {
@@ -67,6 +71,8 @@ configureMessageHandlers({
   onSelectMessage: selectMessage,
   onReaction: reactToMessage,
 });
+
+startReadTracking();
 
 bindMessageActions(
   reactToMessage

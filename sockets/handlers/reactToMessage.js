@@ -1,16 +1,22 @@
-const mongoose = require("mongoose");
+const mongoose = require(
+  "mongoose"
+);
 
 const Message = require(
   "../../models/Message"
 );
 
 const {
-  getCurrentUser,
-} = require("../../utils/users");
+  ALLOWED_REACTIONS,
+} = require(
+  "../../config/chat"
+);
 
 const {
-  ALLOWED_REACTIONS,
-} = require("../../config/chat");
+  getCurrentUser,
+} = require(
+  "../../utils/users"
+);
 
 const {
   serializeReactions,
@@ -18,154 +24,242 @@ const {
   "../services/messageSerializer"
 );
 
-function getCallback(callback) {
-  return typeof callback === "function"
-    ? callback
-    : () => {};
-}
-
-function toggleUserReaction(
-  reaction,
-  userId
+function acknowledge(
+  callback,
+  payload
 ) {
-  const hasReacted =
-    reaction.userIds.some(
-      (id) =>
-        id.toString() === userId
-    );
-
-  if (hasReacted) {
-    reaction.userIds =
-      reaction.userIds.filter(
-        (id) =>
-          id.toString() !== userId
-      );
-
-    return;
+  if (
+    typeof callback ===
+    "function"
+  ) {
+    callback(payload);
   }
-
-  reaction.userIds.push(userId);
 }
 
-function reactToMessage(io, socket) {
+function reactToMessage(
+  io,
+  socket
+) {
   return async (
-    payload = {},
+    {
+      messageId,
+      emoji,
+    } = {},
     callback
   ) => {
-    const respond =
-      getCallback(callback);
-
     try {
-      const roomUser =
-        getCurrentUser(socket.id);
-
-      const authenticatedUser =
-        socket.data.authenticatedUser;
-
-      if (!roomUser) {
-        throw new Error(
-          "Join a room before reacting."
+      const user =
+        getCurrentUser(
+          socket.id
         );
-      }
 
-      const {
-        messageId,
-        emoji,
-      } = payload;
+      if (!user) {
+        acknowledge(
+          callback,
+          {
+            ok: false,
+
+            error:
+              "Join a room before reacting.",
+          }
+        );
+
+        return;
+      }
 
       if (
         !mongoose.isValidObjectId(
           messageId
         )
       ) {
-        throw new Error(
-          "Invalid message."
+        acknowledge(
+          callback,
+          {
+            ok: false,
+
+            error:
+              "The selected message is invalid.",
+          }
         );
+
+        return;
       }
 
       if (
-        !ALLOWED_REACTIONS.has(emoji)
+        !ALLOWED_REACTIONS.has(
+          emoji
+        )
       ) {
-        throw new Error(
-          "That reaction is not supported."
+        acknowledge(
+          callback,
+          {
+            ok: false,
+
+            error:
+              "That reaction is not allowed.",
+          }
         );
+
+        return;
       }
 
       const message =
         await Message.findOne({
-          _id: messageId,
-          room: roomUser.room,
+          _id:
+            messageId,
+
+          roomId:
+            user.roomId,
         });
 
       if (!message) {
-        throw new Error(
-          "Message not found in this room."
+        acknowledge(
+          callback,
+          {
+            ok: false,
+
+            error:
+              "The message does not belong to this room.",
+          }
         );
+
+        return;
       }
 
-      let reaction =
-        message.reactions.find(
-          (item) =>
-            item.emoji === emoji
+      if (message.isDeleted) {
+        acknowledge(
+          callback,
+          {
+            ok: false,
+
+            error:
+              "Deleted messages cannot receive reactions.",
+          }
         );
 
-      if (!reaction) {
+        return;
+      }
+
+      const reactionIndex =
+        message.reactions
+          .findIndex(
+            (reaction) => {
+              return (
+                reaction.emoji ===
+                emoji
+              );
+            }
+          );
+
+      if (
+        reactionIndex === -1
+      ) {
         message.reactions.push({
           emoji,
 
           userIds: [
-            authenticatedUser.id,
+            user.userId,
           ],
         });
       } else {
-        toggleUserReaction(
-          reaction,
-          authenticatedUser.id
-        );
+        const reaction =
+          message.reactions[
+            reactionIndex
+          ];
+
+        const userIndex =
+          reaction.userIds
+            .findIndex(
+              (
+                reactionUserId
+              ) => {
+                return (
+                  String(
+                    reactionUserId
+                  ) ===
+                  String(
+                    user.userId
+                  )
+                );
+              }
+            );
+
+        if (
+          userIndex === -1
+        ) {
+          reaction.userIds.push(
+            user.userId
+          );
+        } else {
+          reaction.userIds.splice(
+            userIndex,
+            1
+          );
+        }
+
+        if (
+          reaction.userIds
+            .length === 0
+        ) {
+          message.reactions.splice(
+            reactionIndex,
+            1
+          );
+        }
       }
 
-      message.reactions =
-        message.reactions.filter(
-          (item) =>
-            item.userIds.length > 0
-        );
+      message.markModified(
+        "reactions"
+      );
 
       await message.save();
 
-      const reactions =
-        serializeReactions(
-          message.reactions
-        );
+      const result = {
+        messageId:
+          String(message._id),
 
-      io.to(roomUser.room).emit(
+        roomId:
+          user.roomId,
+
+        reactions:
+          serializeReactions(
+            message.reactions
+          ),
+      };
+
+      io.to(
+        user.roomChannel
+      ).emit(
         "messageReactionUpdated",
-        {
-          messageId:
-            message._id.toString(),
-
-          reactions,
-        }
+        result
       );
 
-      respond({
-        ok: true,
-        reactions,
-      });
+      acknowledge(
+        callback,
+        {
+          ok: true,
+
+          ...result,
+        }
+      );
     } catch (error) {
       console.error(
-        "Reaction error:",
+        "React to message error:",
         error
       );
 
-      respond({
-        ok: false,
+      acknowledge(
+        callback,
+        {
+          ok: false,
 
-        error:
-          error.message ||
-          "Unable to update reaction.",
-      });
+          error:
+            "Unable to update the reaction.",
+        }
+      );
     }
   };
 }
 
-module.exports = reactToMessage;
+module.exports =
+  reactToMessage;

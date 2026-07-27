@@ -1,78 +1,157 @@
 const mongoose = require("mongoose");
 
-const reactionSchema = new mongoose.Schema(
-  {
-    emoji: {
-      type: String,
-      required: true,
-    },
-
-    userIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+const reactionSchema =
+  new mongoose.Schema(
+    {
+      emoji: {
+        type: String,
+        required: true,
+        trim: true,
       },
-    ],
-  },
-  {
-    _id: false,
-  }
-);
 
-const messageSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-      index: true,
-    },
+      userIds: {
+        type: [
+          {
+            type:
+              mongoose.Schema.Types
+                .ObjectId,
 
-    username: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 40,
-    },
+            ref: "User",
+          },
+        ],
 
-    room: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 50,
-      index: true,
+        default: [],
+      },
     },
+    {
+      _id: false,
+    }
+  );
 
-    text: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 1000,
-    },
+const messageSchema =
+  new mongoose.Schema(
+    {
+      roomId: {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
 
-    replyTo: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Message",
-      default: null,
-      index: true,
-    },
+        ref: "Room",
 
-    reactions: {
-      type: [reactionSchema],
-      default: [],
+        required: true,
+
+        index: true,
+      },
+
+      userId: {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref: "User",
+
+        required: true,
+
+        index: true,
+      },
+
+      text: {
+        type: String,
+
+        required: true,
+
+        maxlength: 4000,
+      },
+
+      replyTo: {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref: "Message",
+
+        default: null,
+
+        index: true,
+      },
+
+      reactions: {
+        type: [reactionSchema],
+
+        default: [],
+      },
+
+      isEdited: {
+        type: Boolean,
+
+        default: false,
+      },
+
+      editedAt: {
+        type: Date,
+
+        default: null,
+      },
+
+      isDeleted: {
+        type: Boolean,
+
+        default: false,
+
+        index: true,
+      },
+
+      deletedAt: {
+        type: Date,
+
+        default: null,
+      },
+
+      deletedBy: {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref: "User",
+
+        default: null,
+      },
+
+      deletionType: {
+        type: String,
+
+        enum: [
+          "self",
+          "moderator",
+          null,
+        ],
+
+        default: null,
+      },
     },
-  },
-  {
-    timestamps: true,
-  }
-);
+    {
+      timestamps: true,
+    }
+  );
 
 messageSchema.index({
-  room: 1,
+  roomId: 1,
   createdAt: -1,
 });
 
-module.exports = mongoose.model(
-  "Message",
-  messageSchema
-);
+messageSchema.index({
+  roomId: 1,
+  _id: 1,
+});
+
+messageSchema.index({
+  roomId: 1,
+  isDeleted: 1,
+  createdAt: -1,
+});
+
+module.exports =
+  mongoose.model(
+    "Message",
+    messageSchema
+  );

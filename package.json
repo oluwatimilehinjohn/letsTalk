@@ -8,7 +8,9 @@
   },
   "scripts": {
     "start": "node server",
-    "dev": "nodemon server"
+    "dev": "nodemon server",
+    "migrate:message-rooms": "node scripts/migrateMessagesToRoomIds.js",
+    "backfill:room-activity": "node scripts/backfillRoomActivity.js"
   },
   "author": "timi",
   "license": "MIT",

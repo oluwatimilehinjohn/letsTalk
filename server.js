@@ -5,277 +5,144 @@ const http = require("http");
 
 const express = require("express");
 
-const {
-  Server,
-} = require("socket.io");
+const { Server } = require("socket.io");
 
-const connectDB = require(
-  "./config/db"
-);
+const connectDB = require("./config/db");
 
-const createSessionMiddleware =
-  require(
-    "./config/session"
-  );
+const createSessionMiddleware = require("./config/session");
 
-const createAuthRouter =
-  require(
-    "./routes/authRoutes"
-  );
+const createAuthRouter = require("./routes/authRoutes");
 
-const createPageRouter =
-  require(
-    "./routes/pageRoutes"
-  );
+const createPageRouter = require("./routes/pageRoutes");
 
-const profileRouter =
-  require(
-    "./routes/profileRoutes"
-  );
+const profileRouter = require("./routes/profileRoutes");
 
-const userRouter =
-  require(
-    "./routes/userRoutes"
-  );
+const userRouter = require("./routes/userRoutes");
 
-const roomRouter =
-  require(
-    "./routes/roomRoutes"
-  );
+const roomRouter = require("./routes/roomRoutes");
 
-const socketAuth =
-  require(
-    "./middleware/socketAuth"
-  );
+const roomReadRouter = require("./routes/roomReadRoutes");
 
-const registerChatSocket =
-  require(
-    "./sockets/chatSocket"
-  );
+const roomManagementRouter = require("./routes/roomManagementRoutes");
 
-const User = require(
-  "./models/User"
-);
+const roomSettingsPageRouter = require("./routes/roomSettingsPageRoutes");
 
-const Room = require(
-  "./models/Rooms"
-);
+const socketAuth = require("./middleware/socketAuth");
 
-const Message = require(
-  "./models/Message"
-);
+const registerChatSocket = require("./sockets/chatSocket");
 
-const {
-  seedDefaultRooms,
-} = require(
-  "./services/roomService"
-);
+const User = require("./models/User");
+
+const Room = require("./models/Rooms");
+
+const Message = require("./models/Message");
+
+const { seedDefaultRooms } = require("./services/roomService");
+
+const directMessageRouter = require("./routes/directMessageRoutes");
+
+const DirectConversation = require("./models/DirectConversation");
+
+const DirectMessage = require("./models/DirectMessage");
 
 const app = express();
 
-const server =
-  http.createServer(app);
+const server = http.createServer(app);
 
-const io = new Server(
-  server
-);
+const io = new Server(server);
+app.set("io", io);
 
-const PORT =
-  process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-const isProduction =
-  process.env.NODE_ENV ===
-  "production";
+const isProduction = process.env.NODE_ENV === "production";
 
-const publicDirectory =
-  path.join(
-    __dirname,
-    "public"
-  );
+const publicDirectory = path.join(__dirname, "public");
 
-/*
- * Reverse-proxy support for production
- * deployments such as Render.
- */
 if (isProduction) {
-  app.set(
-    "trust proxy",
-    1
-  );
+  app.set("trust proxy", 1);
 }
 
-/*
- * Request-body parsers
- */
 app.use(
   express.json({
     limit: "10kb",
-  })
+  }),
 );
 
 app.use(
   express.urlencoded({
     extended: false,
     limit: "10kb",
-  })
+  }),
 );
 
+const sessionMiddleware = createSessionMiddleware();
+
+app.use(sessionMiddleware);
+
+app.get("/health", (request, response) => {
+  response.status(200).json({
+    status: "ok",
+  });
+});
+
+app.use("/api/auth", createAuthRouter(io));
+
+app.use("/api/profile", profileRouter);
+
+app.use("/api/users", userRouter);
+
+app.use("/api/rooms", roomReadRouter);
+
+app.use("/api/rooms", roomRouter);
+
+app.use("/api/rooms", roomManagementRouter);
 /*
- * Session middleware
+ * Register this before the general
+ * page router.
  */
-const sessionMiddleware =
-  createSessionMiddleware();
+app.use(roomSettingsPageRouter);
 
-app.use(
-  sessionMiddleware
+app.use("/api/direct-messages", directMessageRouter);
+
+const directMessagePageRouter = require(
+  "./routes/directMessagePageRoutes"
 );
 
-/*
- * Health-check route
- */
-app.get(
-  "/health",
-  (
-    request,
-    response
-  ) => {
-    response
-      .status(200)
-      .json({
-        status: "ok",
-      });
-  }
-);
+app.use(createPageRouter());
 
-/*
- * Application API routes
- */
-app.use(
-  "/api/auth",
-  createAuthRouter(io)
-);
+app.use(express.static(publicDirectory));
 
-app.use(
-  "/api/profile",
-  profileRouter
-);
+io.engine.use(sessionMiddleware);
 
-app.use(
-  "/api/users",
-  userRouter
-);
+io.use(socketAuth);
 
-app.use(
-  "/api/rooms",
-  roomRouter
-);
-
-/*
- * Public and protected
- * HTML page routes
- */
-app.use(
-  createPageRouter()
-);
-
-/*
- * Static browser assets
- */
-app.use(
-  express.static(
-    publicDirectory
-  )
-);
-
-/*
- * Share the Express session
- * with Socket.IO.
- */
-io.engine.use(
-  sessionMiddleware
-);
-
-/*
- * Authenticate every socket
- * connection.
- */
-io.use(
-  socketAuth
-);
-
-/*
- * Register chat socket handlers.
- */
 registerChatSocket(io);
 
-/*
- * Unknown API route
- */
-app.use(
-  "/api",
-  (
-    request,
-    response
-  ) => {
-    response
-      .status(404)
-      .json({
-        error:
-          "API route not found.",
-      });
+app.use("/api", (request, response) => {
+  response.status(404).json({
+    error: "API route not found.",
+  });
+});
+
+app.use((error, request, response, next) => {
+  console.error("Unhandled application error:", error);
+
+  if (response.headersSent) {
+    next(error);
+    return;
   }
-);
 
-/*
- * Global Express error handler
- */
-app.use(
-  (
-    error,
-    request,
-    response,
-    next
-  ) => {
-    console.error(
-      "Unhandled application error:",
-      error
-    );
+  if (request.originalUrl.startsWith("/api/")) {
+    response.status(500).json({
+      error: "An unexpected server error occurred.",
+    });
 
-    if (
-      response.headersSent
-    ) {
-      next(error);
-      return;
-    }
-
-    if (
-      request.originalUrl
-        .startsWith("/api/")
-    ) {
-      response
-        .status(500)
-        .json({
-          error:
-            "An unexpected server error occurred.",
-        });
-
-      return;
-    }
-
-    response
-      .status(500)
-      .send(
-        "An unexpected server error occurred."
-      );
+    return;
   }
-);
 
-/*
- * Connect to MongoDB,
- * initialize indexes,
- * restore default rooms,
- * and start the server.
- */
+  response.status(500).send("An unexpected server error occurred.");
+});
+
 async function startServer() {
   try {
     await connectDB();
@@ -283,27 +150,18 @@ async function startServer() {
     await User.init();
     await Room.init();
     await Message.init();
+    await DirectConversation.init();
+    await DirectMessage.init();
 
     await seedDefaultRooms();
 
-    server.listen(
-      PORT,
-      "0.0.0.0",
-      () => {
-        console.log(
-          "Default rooms are ready."
-        );
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log("Default rooms are ready.");
 
-        console.log(
-          `Server running on port ${PORT}`
-        );
-      }
-    );
+      console.log(`Server running on port ${PORT}`);
+    });
   } catch (error) {
-    console.error(
-      "Application startup failed:",
-      error
-    );
+    console.error("Application startup failed:", error);
 
     process.exit(1);
   }

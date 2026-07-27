@@ -1,27 +1,96 @@
-const moment = require("moment");
+const DELETED_MESSAGE_TEXT =
+  "This message was deleted.";
 
-function getPopulatedUser(value) {
-  if (
-    value &&
-    typeof value === "object" &&
-    value._id
-  ) {
-    return value;
+function serializeId(value) {
+  if (!value) {
+    return null;
   }
 
-  return null;
+  if (value._id) {
+    return String(value._id);
+  }
+
+  return String(value);
+}
+
+function serializeUser(
+  user,
+  fallback = {}
+) {
+  if (!user) {
+    const fallbackId =
+      fallback.userId
+        ? String(
+            fallback.userId
+          )
+        : null;
+
+    const fallbackUsername =
+      fallback.username || "";
+
+    return {
+      id: fallbackId,
+
+      username:
+        fallbackUsername,
+
+      displayName:
+        fallback.displayName ||
+        fallbackUsername,
+
+      avatarUrl:
+        fallback.avatarUrl || "",
+    };
+  }
+
+  const username =
+    user.username ||
+    fallback.username ||
+    "";
+
+  return {
+    id:
+      serializeId(user),
+
+    username,
+
+    displayName:
+      user.displayName ||
+      fallback.displayName ||
+      username,
+
+    avatarUrl:
+      user.avatarUrl ||
+      fallback.avatarUrl ||
+      "",
+  };
 }
 
 function serializeReactions(
   reactions = []
 ) {
-  return reactions.map((reaction) => ({
-    emoji: reaction.emoji,
+  return reactions.map(
+    (reaction) => {
+      const userIds =
+        Array.isArray(
+          reaction.userIds
+        )
+          ? reaction.userIds.map(
+              serializeId
+            )
+          : [];
 
-    userIds: reaction.userIds.map(
-      (userId) => userId.toString()
-    ),
-  }));
+      return {
+        emoji:
+          reaction.emoji,
+
+        userIds,
+
+        count:
+          userIds.length,
+      };
+    }
+  );
 }
 
 function serializeReply(reply) {
@@ -29,78 +98,173 @@ function serializeReply(reply) {
     return null;
   }
 
-  const author = getPopulatedUser(
-    reply.userId
-  );
+  const isDeleted =
+    Boolean(
+      reply.isDeleted
+    );
+
+  const user =
+    serializeUser(
+      reply.userId,
+      reply
+    );
+
+  const replyId =
+    serializeId(reply);
 
   return {
-    id: reply._id.toString(),
+    id:
+      replyId,
 
-    userId: author
-      ? author._id.toString()
-      : reply.userId?.toString() || null,
+    _id:
+      replyId,
+
+    text:
+      isDeleted
+        ? DELETED_MESSAGE_TEXT
+        : reply.text || "",
+
+    user,
+
+    userId:
+      user.id,
 
     username:
-      author?.username ||
-      reply.username,
+      user.username,
 
     displayName:
-      author?.displayName ||
-      author?.username ||
-      reply.username,
+      user.displayName,
 
     avatarUrl:
-      author?.avatarUrl || null,
+      user.avatarUrl,
 
-    text: reply.text,
+    isDeleted,
 
-    createdAt: reply.createdAt,
+    deletedAt:
+      reply.deletedAt || null,
+
+    createdAt:
+      reply.createdAt || null,
   };
 }
 
-function serializeMessage(message) {
-  const author = getPopulatedUser(
-    message.userId
-  );
+function serializeMessage(
+  message,
+  room = {}
+) {
+  const messageId =
+    serializeId(message);
+
+  const user =
+    serializeUser(
+      message.userId,
+      message
+    );
+
+  const roomId =
+    serializeId(
+      room.id ||
+      room._id ||
+      message.roomId
+    );
+
+  const roomName =
+    room.name ||
+    message.roomName ||
+    message.room ||
+    "";
+
+  const roomSlug =
+    room.slug ||
+    message.roomSlug ||
+    "";
+
+  const isDeleted =
+    Boolean(
+      message.isDeleted
+    );
 
   return {
-    id: message._id.toString(),
+    id:
+      messageId,
 
-    userId: author
-      ? author._id.toString()
-      : message.userId?.toString() || null,
+    _id:
+      messageId,
+
+    roomId,
+
+    room:
+      roomName,
+
+    roomName,
+
+    roomSlug,
+
+    text:
+      isDeleted
+        ? DELETED_MESSAGE_TEXT
+        : message.text || "",
+
+    user,
+
+    userId:
+      user.id,
 
     username:
-      author?.username ||
-      message.username,
+      user.username,
 
     displayName:
-      author?.displayName ||
-      author?.username ||
-      message.username,
+      user.displayName,
 
     avatarUrl:
-      author?.avatarUrl || null,
+      user.avatarUrl,
 
-    text: message.text,
+    replyTo:
+      serializeReply(
+        message.replyTo
+      ),
 
-    time: moment(
-      message.createdAt
-    ).format("h:mm a"),
+    reactions:
+      isDeleted
+        ? []
+        : serializeReactions(
+            message.reactions
+          ),
 
-    createdAt: message.createdAt,
+    isEdited:
+      !isDeleted &&
+      Boolean(
+        message.isEdited
+      ),
 
-    replyTo: serializeReply(
-      message.replyTo
-    ),
+    editedAt:
+      isDeleted
+        ? null
+        : message.editedAt ||
+          null,
 
-    reactions: serializeReactions(
-      message.reactions
-    ),
+    isDeleted,
+
+    deletedAt:
+      message.deletedAt ||
+      null,
+
+    deletionType:
+      message.deletionType ||
+      null,
+
+    createdAt:
+      message.createdAt,
+
+    updatedAt:
+      message.updatedAt,
   };
 }
 
 module.exports = {
+  DELETED_MESSAGE_TEXT,
   serializeMessage,
   serializeReactions,
+  serializeReply,
+  serializeUser,
 };
