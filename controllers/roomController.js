@@ -80,7 +80,17 @@ async function listRooms(
       }).sort({
         isSystem: -1,
         name: 1,
-      });
+      })
+        // The inbox only needs a compact preview, so populate the already
+        // maintained lastMessageId rather than fetching room histories.
+        .populate({
+          path: "lastMessageId",
+          select: "text userId isDeleted createdAt",
+          populate: {
+            path: "userId",
+            select: "username displayName avatarUrl",
+          },
+        });
 
     response.json({
       rooms:

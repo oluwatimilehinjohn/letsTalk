@@ -16,4 +16,8 @@ export const state = {
   replyingToMessage: null,
 
   messageStore: new Map(),
+
+  typingUsers: new Map(),
+
+  typingNames: new Map(),
 };

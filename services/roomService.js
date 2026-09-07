@@ -235,6 +235,33 @@ function serializeRoom(
       userId
     );
 
+  // Room activity already records lastMessageId/lastMessageAt. Project only
+  // that small piece of data for the inbox instead of coupling the room list
+  // to message-history loading.
+  const message = room.lastMessageId;
+  const hasMessage = Boolean(message?._id);
+  const messageUser = hasMessage && message.userId?._id
+    ? message.userId
+    : null;
+  const lastMessage = hasMessage
+    ? {
+      id: String(message._id),
+      text: message.isDeleted
+        ? "This message was deleted."
+        : message.text || "",
+      isDeleted: Boolean(message.isDeleted),
+      createdAt: message.createdAt || room.lastMessageAt || null,
+      sender: messageUser
+        ? {
+          id: String(messageUser._id),
+          username: messageUser.username || "",
+          displayName: messageUser.displayName || messageUser.username || "",
+          avatarUrl: messageUser.avatarUrl || "",
+        }
+        : null,
+    }
+    : null;
+
   return {
     id:
       room._id.toString(),
@@ -269,6 +296,16 @@ function serializeRoom(
       )
         ? room.members.length
         : 0,
+
+    lastMessage,
+
+    lastMessagePreview:
+      lastMessage?.text || "",
+
+    lastMessageAt:
+      room.lastMessageAt ||
+      lastMessage?.createdAt ||
+      null,
 
     createdAt:
       room.createdAt,

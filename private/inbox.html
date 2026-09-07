@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f8fa">
+  <title>Let's Talk · Chats</title>
+  <link rel="stylesheet" href="/css/inbox.css">
+  <link rel="stylesheet" href="/css/call.css">
+</head>
+<body>
+  <a class="skip-link" href="#composer-input">Skip to message composer</a>
+  <div class="app" id="app">
+    <header class="app-header">
+      <a class="brand" href="/rooms"><span class="brand-mark" aria-hidden="true">l<span>t</span></span>Let's Talk<span class="brand-caption">A little closer.</span></a>
+      <nav aria-label="Account"><span id="connection" role="status">Connecting…</span><a id="account" href="/profile" aria-label="Your profile">Profile</a><button id="logout" class="quiet">Log out</button></nav>
+    </header>
+    <div class="workspace">
+      <aside class="sidebar" aria-label="Conversations">
+        <div class="sidebar-heading"><div><p class="eyebrow">YOUR EVERYDAY CONNECTIONS</p><h1>Chats <span id="total-unread" class="total"></span></h1></div><button class="icon-button primary" id="new-chat" aria-label="Start a new conversation" title="New chat">＋</button></div>
+        <button class="search-launch" id="global-search"><span aria-hidden="true">⌕</span> Search anything <kbd>Ctrl K</kbd></button>
+        <div class="filters" role="group" aria-label="Filter conversations"><button data-filter="all" aria-pressed="true">All</button><button data-filter="direct" aria-pressed="false">Direct messages</button><button data-filter="room" aria-pressed="false">Groups</button></div>
+        <div class="list-heading"><span>CONVERSATIONS</span><span id="conversation-count"></span></div>
+        <div id="conversation-list" class="conversation-list" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+        <footer class="sidebar-footer"><a href="/discover">Explore groups <span aria-hidden="true">↗</span></a><button id="new-chat-bottom" class="quiet">＋ New chat</button></footer>
+      </aside>
+      <main id="conversation" class="conversation" aria-label="Active conversation">
+        <div id="welcome" class="welcome"><div class="welcome-symbol" aria-hidden="true">☏</div><p class="eyebrow">GOOD CONVERSATIONS START HERE</p><h2>Make yourself at home.</h2><p>Catch up with your people, share an idea,<br>or simply say hello.</p><button id="welcome-new" class="primary">＋ Start a conversation</button><span class="welcome-note">Your conversations, all in one place.</span></div>
+        <header id="conversation-header" class="conversation-header" hidden><button id="back" class="icon-button" aria-label="Back to chats">←</button><div id="header-avatar"></div><div class="header-person"><h2 id="conversation-name"></h2><p id="conversation-status"></p></div><button id="call-audio" class="icon-button" aria-label="Start audio call" title="Start audio call" hidden>☎</button><button id="call-video" class="icon-button" aria-label="Start video call" title="Start video call" hidden>▣</button><button id="conversation-search" class="icon-button" aria-label="Search this conversation" title="Search conversation">⌕</button><button id="details-toggle" class="icon-button" aria-label="Conversation details" aria-expanded="false" aria-controls="details" title="Conversation details">ⓘ</button></header>
+        <div id="conversation-error" class="inline-error" role="alert" hidden></div>
+        <section id="timeline" class="timeline" tabindex="0" aria-label="Messages" hidden><button id="load-older" class="load-older" hidden>Load older messages</button><div id="messages"></div></section>
+        <button id="jump-latest" class="jump-latest" hidden>↓ New messages</button>
+        <footer id="composer" class="composer" hidden>
+          <div id="typing" class="typing" role="status"></div>
+          <div id="reply-preview" class="reply-preview" hidden><div><strong id="reply-author"></strong><p id="reply-text"></p></div><button id="cancel-reply" class="icon-button" aria-label="Cancel reply">×</button></div>
+          <form id="message-form"><label class="sr-only" for="composer-input">Message</label><textarea id="composer-input" rows="1" maxlength="4000" placeholder="Write a message…"></textarea><button id="send" class="primary send" type="submit" aria-label="Send message" disabled>↑</button></form>
+          <div class="composer-help"><span><kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for a new line</span><span id="send-status" role="status"></span></div>
+        </footer>
+      </main>
+      <aside id="details" class="details" aria-label="Conversation details" hidden><div class="details-heading"><h2>Conversation details</h2><button id="details-close" class="icon-button" aria-label="Close details">×</button></div><div id="details-content"></div></aside>
+    </div>
+  </div>
+  <dialog id="search-dialog" aria-labelledby="search-title"><div class="dialog-heading"><h2 id="search-title">Search anything</h2><button class="icon-button" data-close-dialog aria-label="Close search">×</button></div><label class="sr-only" for="search-input">Search people, groups and messages</label><input id="search-input" class="dialog-input" type="search" placeholder="People, groups, messages…" maxlength="100" autocomplete="off"><p id="search-status" class="muted" role="status">Find a person, a conversation, or something you said.</p><div id="search-results" class="dialog-results"></div></dialog>
+  <dialog id="new-dialog" aria-labelledby="new-title"><div class="dialog-heading"><div><p class="eyebrow">SAY HELLO</p><h2 id="new-title">New conversation</h2></div><button class="icon-button" data-close-dialog aria-label="Close new conversation">×</button></div><div class="new-options"><button id="find-people" class="option"><strong>↗ Message someone</strong><span>Find a person by name or username</span></button><button id="create-group" class="option"><strong>＋ Create a group</strong><span>A shared space for your people</span></button><a class="option" href="/discover"><strong>⌕ Explore groups</strong><span>Browse groups or join with an invite code</span></a></div><form id="group-form" hidden><label for="group-name">Group name</label><input id="group-name" required minlength="2" maxlength="50" placeholder="e.g. Weekend plans"><label for="group-description">Description <span class="muted">(optional)</span></label><input id="group-description" maxlength="160" placeholder="What brings you together?"><label for="group-visibility">Who can join?</label><select id="group-visibility"><option value="private">People with an invite code</option><option value="public">Anyone in Let's Talk</option></select><p class="muted">You can invite people and manage your group after creating it.</p><p id="group-error" role="alert"></p><button class="primary" type="submit">Create group</button></form></dialog>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title"><div class="dialog-heading"><h2 id="confirm-title">Delete this message?</h2></div><p>This removes its contents for everyone. A deleted-message notice will stay in the conversation.</p><div class="dialog-actions"><button id="delete-cancel">Cancel</button><button id="delete-confirm" class="danger">Delete message</button></div><p id="delete-error" role="alert"></p></dialog>
+  <dialog id="incoming-call" class="call-dialog" aria-labelledby="incoming-call-title"><p class="eyebrow">INCOMING CALL</p><h2 id="incoming-call-title">Incoming call</h2><p id="incoming-call-copy" class="muted"></p><div class="dialog-actions"><button id="decline-call" class="danger">Decline</button><button id="accept-call" class="primary">Answer</button></div></dialog>
+  <section id="call-panel" class="call-panel" aria-label="Active call" hidden><video id="remote-media" autoplay playsinline></video><video id="local-media" autoplay muted playsinline></video><p id="call-status" role="status">Connecting…</p><div class="call-controls"><button id="toggle-mic" class="icon-button" aria-label="Mute microphone" title="Mute microphone">◉</button><button id="toggle-camera" class="icon-button" aria-label="Turn camera off" title="Turn camera off" hidden>▣</button><button id="end-call" class="icon-button call-end" aria-label="End call" title="End call">☎</button></div></section>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/js/inbox/index.js"></script>
+</body>
+</html>

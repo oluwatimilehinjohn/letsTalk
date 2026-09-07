@@ -103,10 +103,7 @@ app.use("/api/rooms", roomManagementRouter);
 app.use(roomSettingsPageRouter);
 
 app.use("/api/direct-messages", directMessageRouter);
-
-const directMessagePageRouter = require(
-  "./routes/directMessagePageRoutes"
-);
+app.use("/api/chat", require("./routes/chatExperienceRoutes"));
 
 app.use(createPageRouter());
 

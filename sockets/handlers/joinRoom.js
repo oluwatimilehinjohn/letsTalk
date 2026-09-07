@@ -100,7 +100,7 @@ function leavePreviousRoom(
 }
 
 function joinRoom(io, socket) {
-  return async ({ room } = {}) => {
+  return async ({ room } = {}, callback) => {
     try {
       const authenticatedUser =
         socket.data
@@ -220,6 +220,8 @@ function joinRoom(io, socket) {
           })
       );
 
+      if (typeof callback === 'function') callback({ ok: true, roomId, messages: messages.map(message => serializeMessage(message, roomContext)) });
+
       await sendWelcomeOnce(
         socket,
         roomContext
@@ -230,6 +232,7 @@ function joinRoom(io, socket) {
         user
       );
     } catch (error) {
+      if (typeof callback === 'function') callback({ ok: false, error: 'Unable to open this group.' });
       console.error(
         "Join room error:",
         error

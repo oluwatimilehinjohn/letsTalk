@@ -39,6 +39,12 @@ const {
   "./services/socketAuth"
 );
 
+const {
+  getCurrentUser,
+  userLeave,
+  getRoomUsers,
+} = require("../utils/users");
+
 function registerChatSocket(io) {
   io.on(
     "connection",
@@ -100,6 +106,32 @@ function registerChatSocket(io) {
           socket
         )
       );
+
+      socket.on("roomTyping", (payload = {}) => {
+        const user = getCurrentUser(socket.id);
+
+        if (!user) {
+          return;
+        }
+
+        socket.to(user.roomChannel).emit("roomTyping", {
+          userId: user.userId,
+          displayName: user.displayName || user.username,
+          isTyping: Boolean(payload.isTyping),
+        });
+      });
+
+      // Leaving the live view does not remove persistent room membership.
+      socket.on('leaveRoomView', (_, callback) => {
+        const user = userLeave(socket.id);
+        if (user) {
+          socket.leave(user.roomChannel);
+          io.to(user.roomChannel).emit('roomUsers', { room: user.roomName, roomId: user.roomId, users: getRoomUsers(user.roomId) });
+        }
+        socket.data.currentRoomId = null;
+        socket.data.currentRoomChannel = null;
+        if (typeof callback === 'function') callback({ ok: true });
+      });
 
       socket.on(
         "disconnect",

@@ -62,7 +62,7 @@ function createPageRouter() {
       response.sendFile(
         path.join(
           privateDirectory,
-          "rooms.html"
+          "inbox.html"
         )
       );
     }
@@ -78,7 +78,7 @@ function createPageRouter() {
       response.sendFile(
         path.join(
           privateDirectory,
-          "chat.html"
+          "inbox.html"
         )
       );
     }
@@ -94,7 +94,7 @@ function createPageRouter() {
       response.sendFile(
         path.join(
           privateDirectory,
-          "messages.html"
+          "inbox.html"
         )
       );
     }
@@ -115,6 +115,27 @@ function createPageRouter() {
       );
     }
   );
+
+  router.get(
+    "/register",
+    (request, response) => {
+      if (request.session?.userId) {
+        response.redirect("/rooms");
+        return;
+      }
+
+      response.sendFile(
+        path.join(
+          publicDirectory,
+          "register.html"
+        )
+      );
+    }
+  );
+
+  router.get('/discover', requireAuthPage, (request, response) => {
+    response.sendFile(path.join(privateDirectory, 'rooms.html'));
+  });
 
   router.get(
     "/users/:username",

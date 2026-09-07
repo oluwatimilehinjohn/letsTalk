@@ -36,6 +36,8 @@ const {
   "./services/socketAuth"
 );
 
+const { registerDirectCallSignaling, endCallsForUser } = require("./handlers/direct/directCallSignaling");
+
 function registerDirectMessageSocket(
   io,
   socket
@@ -123,6 +125,8 @@ function registerDirectMessageSocket(
     )
   );
 
+  registerDirectCallSignaling(io, socket);
+
   socket.on(
     "disconnect",
     () => {
@@ -138,6 +142,10 @@ function registerDirectMessageSocket(
       ) {
         return;
       }
+
+      // A user may have another tab open. Only terminate a call when their
+      // final authenticated socket disappears.
+      endCallsForUser(io, userId);
 
       emitPresenceToContacts(
         io,
