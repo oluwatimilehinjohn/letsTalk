@@ -98,4 +98,15 @@ export const dom = {
     document.getElementById(
       "msg"
     ),
+
+  messageCounter: document.getElementById("message-counter"),
+  emojiToggle: document.getElementById("emoji-toggle"),
+  emojiPicker: document.getElementById("emoji-picker"),
+  typingIndicator: document.getElementById("typing-indicator"),
+  connectionStatus: document.getElementById("connection-status"),
+  searchToggle: document.getElementById("search-toggle"),
+  searchPanel: document.getElementById("chat-search"),
+  searchInput: document.getElementById("message-search-input"),
+  searchCount: document.getElementById("search-result-count"),
+  searchClose: document.getElementById("search-close"),
 };
