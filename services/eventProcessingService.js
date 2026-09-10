@@ -7,8 +7,9 @@ function createEventHandlers({ repository, queues }) {
       if (["message.created", "direct_message.created"].includes(event.eventType)) {
         await queues.add("notification", "message", { event }, event.eventId);
       } else if (event.eventType === "user.created") {
-        await queues.add("email", "welcome-email", { key: `welcome-${event.eventId}`,
-          mongoUserId: event.data.actorUserId, eventId: event.eventId, template: "welcome-email" }, `welcome-${event.eventId}`);
+        const key = `welcome-${event.data.actorUserId}`;
+        await queues.add("email", "welcome-email", { key,
+          mongoUserId: event.data.actorUserId, eventId: event.eventId, template: "welcome-email" }, key);
       }
     },
     async analytics(event) {

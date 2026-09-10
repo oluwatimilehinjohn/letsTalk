@@ -30,27 +30,26 @@ test("notification consumer queues stable event ID and worker honors preferences
   assert.equal(created, 1);
   await assert.rejects(processor.notification({ name: "invalid" }), { name: "UnrecoverableError" });
 });
-test("digest uses stable window and job IDs on retry; email remains opt-in", async () => {
+test("digest includes all Mongo users and keeps Nigeria date and IDs stable on retry", async () => {
   const jobs = [];
-  const windows = [];
-  let emails = 0;
-  const repository = { digestUsers: async () => [{ id: "account", mongoUserId: id }],
-    notificationCount: async (_, start, end) => { windows.push([start, end]); return 2; },
-    preferences: async () => ({ emailNotifications: false }), email: async () => emails++ };
-  const processors = createProcessors({ repository, queues: { add: async (...args) => jobs.push(args) } });
-  const job = { name: "daily-digest", id: "repeat:123", timestamp: Date.now(), opts: { delay: 60000 } };
+  const processors = createProcessors({ repository: {}, summarySource: { users: async () => [{ _id: id }] },
+    queues: { add: async (...args) => jobs.push(args) } });
+  const job = { name: "daily-digest", id: "repeat:123", timestamp: Date.parse("2026-09-10T06:00:00Z"), opts: {} };
   await processors.maintenance(job);
   await processors.maintenance(job);
   assert.equal(jobs[0][3], jobs[1][3]);
-  assert.deepEqual(windows[0], windows[1]);
-  await processors.email({ name: jobs[0][1], data: jobs[0][2] });
-  assert.equal(emails, 0);
+  assert.equal(jobs[0][2].start, "2026-09-08T23:00:00.000Z");
+  assert.equal(jobs[0][2].end, "2026-09-09T23:00:00.000Z");
+  assert.equal(jobs[0][2].date, "2026-09-09");
+  assert.equal(jobs[0][2].mongoUserId, id);
 });
 test("scheduler supplies explicit timezone and stable scheduler identities", async () => {
   const schedules = [];
   await registerSchedules({ maintenance: { upsertJobScheduler: async (...args) => schedules.push(args) } });
   assert.equal(schedules.length, 2);
   assert.ok(schedules.every(([, options]) => options.tz && options.pattern));
+  assert.equal(schedules[0][1].tz, "Africa/Lagos");
+  assert.equal(schedules[0][1].pattern, "0 7 * * *");
 });
 test("shutdown closes resources in reverse order once despite individual failure", async () => {
   const order = [];

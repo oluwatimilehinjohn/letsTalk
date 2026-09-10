@@ -3,7 +3,7 @@ async function registerSchedules(queues) {
   const tz = process.env.SCHEDULE_TIMEZONE || "UTC";
   new Intl.DateTimeFormat("en", { timeZone: tz }).format();
   await queues.maintenance.upsertJobScheduler("daily-digest-v1", {
-    pattern: process.env.NOTIFICATION_DIGEST_CRON || "0 7 * * *", tz,
+    pattern: "0 7 * * *", tz: "Africa/Lagos",
   }, { name: "daily-digest", data: {}, opts: jobOptions });
   await queues.maintenance.upsertJobScheduler("notification-cleanup-v1", {
     pattern: process.env.MAINTENANCE_CRON || "0 3 * * *", tz,

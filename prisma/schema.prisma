@@ -56,7 +56,8 @@ model Notification {
   @@index([userId, createdAt])
 }
 
-// Development delivery sink: no provider and no real email addresses or bodies.
+// Pending provider requests retain their exact payload for idempotent retries.
+// Sent records keep only the provider receipt, not the recipient or message body.
 model EmailDelivery {
   id        String @id @default(uuid()) @db.Uuid
   key       String @unique
