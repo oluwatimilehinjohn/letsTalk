@@ -1,3 +1,4 @@
+const eventBus = require("../events/eventBus");
 const DirectConversation = require(
   "../models/DirectConversation"
 );
@@ -190,6 +191,8 @@ async function createDirectMessage({
       text:
         cleanText,
   });
+
+  await eventBus.publish("direct_message.created", { actorUserId: senderId, messageId: message._id, conversationId: conversation._id, recipientUserId });
 
   await DirectConversation.updateOne(
     {

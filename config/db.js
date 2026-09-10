@@ -5,7 +5,7 @@ async function connectDB() {
 
   if (!mongoUri) {
     throw new Error(
-      "MONGO_URI is missing from Render environment variables"
+      "MONGO_URI is missing from environment variables"
     );
   }
 
@@ -20,15 +20,8 @@ async function connectDB() {
       `MongoDB connected: ${connection.connection.host}/${connection.connection.name}`
     );
   } catch (error) {
-    console.error("MongoDB connection failed");
-    console.error("Name:", error.name);
-    console.error("Message:", error.message);
-
-    if (error.reason) {
-      console.error("Reason:", error.reason);
-    }
-
-    process.exit(1);
+    require("../utils/logger").failure("mongo.connection.failed", error);
+    throw error;
   }
 }
 

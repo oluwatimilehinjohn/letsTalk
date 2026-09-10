@@ -20,16 +20,7 @@ function createSessionMiddleware() {
   const isProduction =
     process.env.NODE_ENV === "production";
 
-  return session({
-    name: "letstalk.sid",
-
-    secret: sessionSecret,
-
-    resave: false,
-
-    saveUninitialized: false,
-
-    store: MongoStore.create({
+  const store = MongoStore.create({
       mongoUrl: mongoUri,
       collectionName: "sessions",
 
@@ -38,7 +29,18 @@ function createSessionMiddleware() {
 
       // Avoid updating MongoDB on every request
       touchAfter: 24 * 60 * 60,
-    }),
+    });
+  store.on("error", error => require("../utils/logger").failure("session.store.failed", error));
+  const middleware = session({
+    name: "letstalk.sid",
+
+    secret: sessionSecret,
+
+    resave: false,
+
+    saveUninitialized: false,
+
+    store,
 
     cookie: {
       httpOnly: true,
@@ -47,6 +49,8 @@ function createSessionMiddleware() {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   });
+  middleware.close = () => store.close();
+  return middleware;
 }
 
 module.exports = createSessionMiddleware;

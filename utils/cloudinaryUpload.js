@@ -3,6 +3,7 @@ const cloudinary = require(
 );
 
 function uploadAvatar(buffer, userId) {
+  if (!process.env.CLOUDINARY_URL) return Promise.reject(new Error("Avatar upload is not configured"));
   return new Promise(
     (resolve, reject) => {
       const uploadStream =
@@ -44,6 +45,7 @@ async function deleteAvatar(publicId) {
     return;
   }
 
+  if (!process.env.CLOUDINARY_URL) throw new Error("Avatar upload is not configured");
   await cloudinary.uploader.destroy(
     publicId,
     {

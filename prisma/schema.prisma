@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// MongoDB retains authentication. This is only an external identity reference.
+model UserAccount {
+  id           String @id @default(uuid()) @db.Uuid
+  mongoUserId  String @unique @db.VarChar(24)
+  createdAt    DateTime @default(now())
+  preference   NotificationPreference?
+  auditLogs    AuditLog[]
+  notifications Notification[]
+  emails       EmailDelivery[]
+}
+
+model NotificationPreference {
+  userId             String @id @db.Uuid
+  user               UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dmNotifications    Boolean @default(true)
+  roomNotifications  Boolean @default(false)
+  emailNotifications Boolean @default(false)
+  dailyDigest        Boolean @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String @id @default(uuid()) @db.Uuid
+  eventId     String @unique @db.Uuid
+  actorUserId String @db.Uuid
+  actor       UserAccount @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  action      String
+  entityType  String
+  entityId    String
+  metadata    Json
+  createdAt   DateTime @default(now())
+  @@index([actorUserId, createdAt])
+}
+
+model Notification {
+  id        String @id @default(uuid()) @db.Uuid
+  key       String @unique
+  userId    String @db.Uuid
+  user      UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId   String
+  kind      String
+  entityId  String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  @@index([expiresAt])
+  @@index([userId, createdAt])
+}
+
+// Development delivery sink: no provider and no real email addresses or bodies.
+model EmailDelivery {
+  id        String @id @default(uuid()) @db.Uuid
+  key       String @unique
+  userId    String @db.Uuid
+  user      UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template  String
+  payload   Json
+  status    String @default("stored")
+  createdAt DateTime @default(now())
+}
+
+model ProcessedEvent {
+  consumer  String
+  eventId   String
+  createdAt DateTime @default(now())
+  @@id([consumer, eventId])
+}
+
+model DailyMetric {
+  day       DateTime @db.Date
+  eventType String
+  count     Int @default(0)
+  @@id([day, eventType])
+}

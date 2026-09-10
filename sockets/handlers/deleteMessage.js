@@ -1,3 +1,4 @@
+const eventBus = require("../../events/eventBus");
 const mongoose = require(
   "mongoose"
 );
@@ -168,6 +169,7 @@ function deleteMessage(
       );
 
       await message.save();
+      await eventBus.publish(permission.deletionType === "moderator" ? "message.moderator_deleted" : "message.deleted", { actorUserId: user.userId, messageId: message._id, roomId: user.roomId });
 
       await message.populate(
         MESSAGE_POPULATION

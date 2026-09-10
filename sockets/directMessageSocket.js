@@ -1,3 +1,4 @@
+const { socketContext } = require("../utils/requestContext");
 const joinDirectConversation = require(
   "./handlers/direct/joinDirectConversation"
 );
@@ -88,10 +89,10 @@ function registerDirectMessageSocket(
 
   socket.on(
     "sendDirectMessage",
-    sendDirectMessage(
+    socketContext(sendDirectMessage(
       io,
       socket
-    )
+    ), "sendDirectMessage")
   );
 
   socket.on(

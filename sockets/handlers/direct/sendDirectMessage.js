@@ -115,12 +115,10 @@ function sendDirectMessage(
           ok: false,
 
           error:
-            error.message ||
-            "Unable to send the direct message.",
+            (error.status && error.status < 500 ? error.message : "Unable to send the direct message."),
 
           code:
-            error.code ||
-            "DIRECT_MESSAGE_ERROR",
+            (error.status && error.status < 500 ? error.code : "DIRECT_MESSAGE_ERROR"),
         }
       );
     }

@@ -1,3 +1,4 @@
+const { socketContext } = require("../utils/requestContext");
 const joinRoom = require(
   "./handlers/joinRoom"
 );
@@ -69,18 +70,18 @@ function registerChatSocket(io) {
 
       socket.on(
         "joinRoom",
-        joinRoom(
+        socketContext(joinRoom(
           io,
           socket
-        )
+        ), "joinRoom")
       );
 
       socket.on(
         "chatMessage",
-        sendMessage(
+        socketContext(sendMessage(
           io,
           socket
-        )
+        ), "chatMessage")
       );
 
       socket.on(
@@ -93,10 +94,10 @@ function registerChatSocket(io) {
 
       socket.on(
         "deleteMessage",
-        deleteMessage(
+        socketContext(deleteMessage(
           io,
           socket
-        )
+        ), "deleteMessage")
       );
 
       socket.on(

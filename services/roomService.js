@@ -1,3 +1,4 @@
+const eventBus = require("../events/eventBus");
 const mongoose = require(
   "mongoose"
 );
@@ -217,6 +218,7 @@ async function ensureRoomMembership(
     );
 
   if (updatedRoom) {
+    await eventBus.publish("room.member.joined", { actorUserId: userId, roomId: room._id });
     return updatedRoom;
   }
 
