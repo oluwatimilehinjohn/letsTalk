@@ -39,7 +39,7 @@ The API and background runner are two Node.js processes in one repository. `npm 
 | --- | --- |
 | JavaScript / Node.js 22 | CommonJS; async/await for I/O and higher-order functions for correlation and processor registration |
 | MongoDB / Mongoose | Users, authentication, sessions, Messages, DirectMessages, DirectConversations, Rooms, membership, reactions, replies, read state, and activity |
-| PostgreSQL / Prisma 6.19 | Relational identity references, preferences, notifications, audits, safe email output, aggregates, and processing deduplication |
+| PostgreSQL / Prisma 6.19 | Relational identity references, preferences, notifications, audits, email delivery tracking, aggregates, and processing deduplication |
 | Socket.IO | Existing client-facing real-time events and WebRTC signaling |
 | Kafka / KafkaJS | Durable asynchronous backend event distribution |
 | Redis | BullMQ queue storage; local AOF persistence with `noeviction` |
@@ -54,7 +54,7 @@ Redis does not store message history. Prisma never accesses MongoDB. Mongoose ne
 
 `NotificationPreference` has a one-to-one foreign key to UserAccount. DM notifications default on; room notifications, email, and digest default off. `AuditLog` has an actor foreign key, unique event ID, action, entity reference, identifier-only metadata, and occurrence time.
 
-`Notification` has a 30-day expiry. `EmailDelivery` stores a template, internal user reference, count, and `stored` status. `DailyMetric` counts supported events by UTC day. `ProcessedEvent` transactionally deduplicates PostgreSQL effects.
+`Notification` has a 30-day expiry. `EmailDelivery` stores pending provider requests for identical retries; once accepted, its status becomes `sent` and its payload is replaced with the provider receipt. Pending requests include the recipient and email content: restrict database access accordingly. `DailyMetric` counts supported events by UTC day. `ProcessedEvent` transactionally deduplicates PostgreSQL effects.
 
 See [schema](prisma/schema.prisma) and [initial migration](prisma/migrations/20260910000000_relational_domain/migration.sql).
 
@@ -102,7 +102,7 @@ For separate roles, run `npm run events:relay`, `npm run consumers`, and `npm ru
 
 - Existing `.env` files without DATABASE_URL or EVENTS_ENABLED=true continue using MongoDB-only chat. Preferences return 503 when PostgreSQL is disabled.
 - Configure PostgreSQL and apply its migration before using relational endpoints. When configured, PostgreSQL is checked during API startup; subsequent relational outages do not enter the MongoDB message persistence path.
-- Set EVENTS_ENABLED=true to capture new events. Kafka and Redis are not API startup dependencies. Run the background runner to process the outbox.
+- Set EVENTS_ENABLED=true to capture chat events. Registration always captures user.created for welcome delivery, even when that flag is false. Kafka and Redis are not API startup dependencies. Run the background runner to process the outbox.
 - Disabling capture does not erase pending events; a running relay continues draining them. Historical chat is not automatically backfilled into notifications or analytics.
 
 ## Environment variables
@@ -120,18 +120,30 @@ See [.env.example](.env.example). Never commit real credentials.
 | POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB | Docker initialization only; example credentials are local-development values |
 | REDIS_URL | Required by background processes |
 | BULLMQ_PREFIX | Queue namespace, default lets-talk |
-| EVENTS_ENABLED | Capture events only when exactly true; unset means disabled |
+| EVENTS_ENABLED | Capture chat events only when exactly true; registration events are always captured |
 | KAFKA_BROKERS | Comma-separated addresses, example 127.0.0.1:9092 |
 | KAFKA_CLIENT_ID | Client name, default lets-talk |
 | KAFKA_GROUP_ID | Group prefix, default lets-talk; suffixed with consumer name/version |
 | KAFKA_TOPIC | Default lets-talk.domain.v1 |
 | KAFKA_DLQ_TOPIC | Default lets-talk.dead-letter.v1 |
 | OUTBOX_POLL_MS | Relay interval, default 1000, minimum 100 |
-| NOTIFICATION_DIGEST_CRON | Default `0 7 * * *` |
 | MAINTENANCE_CRON | Default `0 3 * * *` |
-| SCHEDULE_TIMEZONE | IANA timezone; fallback UTC, example America/New_York |
+| SCHEDULE_TIMEZONE | Cleanup timezone; fallback UTC, example Africa/Lagos |
+| RESEND_API_KEY | Resend API key, required by email workers |
+| EMAIL_FROM | Sender address on a domain verified with Resend |
+| APP_URL | Public application URL used in email links |
 
-Schedules follow the configured timezone and daylight-saving rules. Digest counts notification records in a rolling 24-hour window ending at the scheduled time, not current unread chat or a calendar day. Both dailyDigest and emailNotifications must be on for stored digest emails. Workers must run for schedules to execute; missed schedules do not trigger unlimited historical catch-up.
+Daily email scheduling is fixed at `0 7 * * *` in `Africa/Lagos` (07:00 WAT / 06:00 UTC), independent of the cleanup timezone. Each digest covers the previous Nigerian calendar day, midnight inclusive to midnight exclusive. For example, the September 10 email covers September 9 00:00–24:00 WAT (September 8 23:00–September 9 23:00 UTC). Workers must run for schedules to execute; jobs begin queuing at 7 a.m., and individual inbox arrival depends on queue size and the provider. Missed schedules do not trigger unlimited historical catch-up.
+
+### Welcome and daily emails
+
+New registrations queue a welcome email immediately through the registration outbox and Kafka consumer. Every registered MongoDB user existing at the scheduled run is included in daily emails, including users without PostgreSQL preferences. These two email types do not use the legacy `emailNotifications`/`dailyDigest` opt-in flags. DM and room notification preferences still control notification records.
+
+Digests read actual MongoDB messages, including read and unread messages and the user's own messages. They show a total, per-conversation counts, and up to three recent 180-character excerpts for each of up to 20 active conversations. Current membership, join time, archival state, and message deletion are checked when composing the email. Quiet days still produce a "No messages" email. This is a deterministic activity summary, not an AI-generated interpretation of conversations.
+
+Configure `RESEND_API_KEY`, `EMAIL_FROM`, and `APP_URL` in your private `.env`, verify the sender's domain in Resend, and run the existing infrastructure setup plus `npm run workers`. No new database migration is needed beyond the existing relational migration. No credentials are bundled. Restart the background runner after configuring email; restart the API to load registration-capture changes. Existing completed development-only email jobs are not bulk resent.
+
+Emails use the [Resend send API](https://resend.com/docs/api-reference/emails/send-email) with a stable [idempotency key](https://resend.com/docs/dashboard/emails/idempotency-keys) per user/welcome or user/Nigerian date. Pending requests retain an identical payload across retries. Provider acceptance is recorded as `sent`; this does not prove inbox delivery. Permanent provider errors are retained as failed jobs; transient failures retry. Email workers are limited to one send per second. After 23 hours, ambiguous pending attempts require checking the provider before manual recovery because its idempotency guarantee expires after 24 hours. Sent receipts remain to prevent later replays. Pending payloads are not automatically purged; investigate failed jobs promptly.
 
 ## Notification API
 
@@ -151,7 +163,7 @@ await fetch('/api/notifications/preferences', {
 }).then(response => response.json());
 ```
 
-No settings UI or paid provider was added. The email worker cannot send real email; it stores safe template metadata. A future provider belongs behind this service boundary with delivery idempotency.
+No notification settings UI was added. The legacy email-related preference fields remain API-compatible but do not suppress the requested all-user daily emails or registration welcome emails.
 
 ## Events and flows
 
@@ -180,7 +192,7 @@ sendDirectMessage → existing DM service → MongoDB DM/outbox → existing con
 
 ### Scheduled digest
 
-Scheduler → maintenance queue / daily-digest → worker pages opted-in accounts and counts notification records → email queue → stored EmailDelivery. The other schedule runs cleanup-notifications and deletes expired notification records only.
+Scheduler at 07:00 Africa/Lagos → maintenance queue / daily-digest → worker pages all registered MongoDB users → one email job per user/date → worker summarizes that user's previous-day messages → Resend → EmailDelivery receipt. The other schedule runs cleanup-notifications and deletes expired notification records only.
 
 ### Audit
 
@@ -188,7 +200,7 @@ Authorized room/moderation mutation → outbox → Kafka → audit consumer → 
 
 ### Consumer groups
 
-- notification-v1: room/DM events enqueue notification jobs; registration enqueues an opt-in welcome-email job.
+- notification-v1: room/DM events enqueue notification jobs; registration enqueues a welcome-email job.
 - analytics-v1: user, room, room-message, and DM creation increment UTC daily counts; new users get identity references.
 - audit-v1: administrative events create audit records.
 
@@ -201,7 +213,7 @@ Names are prefixed by KAFKA_GROUP_ID. Each group independently receives the stre
 - Consumers acknowledge successful handling only. Invalid schemas/versions go to the DLQ with topic/partition/offset and SHA-256 hash, not raw untrusted content. Inspect the original record within its seven-day retention and fix the cause before replay. DLQ failures leave the source offset uncommitted.
 - Transient consumer errors throw for KafkaJS retry/restart. A non-restarting consumer crash terminates the background runner with a failure code for a supervisor to restart.
 - BullMQ jobs use five attempts and exponential backoff. Invalid jobs throw UnrecoverableError. Failed jobs remain for inspection; completed jobs retain up to seven days / 10,000 entries per queue.
-- Stable job IDs reduce duplicate enqueues. PostgreSQL processing claims and effects share transactions, preventing duplicate notifications, emails, audits, and metrics. Deduplication records survive notification cleanup and have no automatic pruning yet.
+- Stable job IDs reduce duplicate enqueues. PostgreSQL processing claims and effects share transactions, preventing duplicate notifications, audits, and metrics. Email uses provider idempotency plus retained sent receipts, not a transaction across the database and provider. Deduplication records survive notification cleanup and have no automatic pruning yet.
 - JSON logs connect requestId, eventId, and jobId through socket.received, event.outbox.saved, event.kafka.acknowledged, event.consumed, job.enqueued, job.started, job.failed, and job.succeeded. A successful job can produce no record when preferences/access suppress delivery. New logs allowlist context; BullMQ retains failure details for trusted inspection.
 - Shutdown stops incoming API traffic or relay/consumers before closing workers, queues, session storage, and databases. Ctrl+C/SIGTERM have a 30-second deadline.
 
@@ -217,7 +229,7 @@ npm run test:integration
 
 Unit tests require no infrastructure. Integration tests require local Compose services and a generated Prisma client. They deliberately ignore .env credentials, use the example localhost credentials, create unique MongoDB database / PostgreSQL schema / Kafka topics and groups / BullMQ prefix names, and remove only those test resources afterward.
 
-Coverage includes preferences/foreign keys, events/privacy, producer acknowledgment, quarantine, relay retry, duplicate processing, authenticated APIs, actual Socket.IO DM delivery, room sends/replies/edits/reactions/moderation, analytics/audits, digest processing, and cleanup preserving chat. Integration uses real MongoDB, PostgreSQL, Redis, Kafka, and BullMQ workers.
+Coverage includes preferences/foreign keys, events/privacy, producer acknowledgment, quarantine, relay retry, duplicate processing, authenticated APIs, actual Socket.IO DM delivery, room sends/replies/edits/reactions/moderation, analytics/audits, digest processing, Nigeria date boundaries, email rendering, provider errors, and cleanup preserving chat. Integration uses real MongoDB, PostgreSQL, Redis, Kafka, and BullMQ workers with an injected fake email sender; tests never send real email.
 
 ## Important paths
 
@@ -235,7 +247,7 @@ Coverage includes preferences/foreign keys, events/privacy, producer acknowledgm
 
 This is a production-style learning architecture, not a hardened deployment. The outbox crash window remains. Compose uses single-node services and localhost plaintext connections, not HA, TLS, ACLs, backups, or production secrets. Presence and call state are process-local, so run one API instance. MongoDB identity references cannot have cross-database foreign keys; future deletion workflows must coordinate stores.
 
-Digest summarizes notification records, not current unread messages. Its rolling window can overlap or leave gaps relative to local calendar days around DST. Recipient access is checked at processing time, without a cross-database transaction. No push/email provider, settings UI, historical analytics backfill, or browser/WebRTC media test was added. Existing npm audit findings remain; broad dependency upgrades are a separate regression-sensitive task.
+Digest summarizes messages from the previous Nigerian calendar day. Recipient access is checked when composing; a pending request is then frozen for provider retries, without a cross-database transaction. No push provider, notification settings UI, historical analytics backfill, or browser/WebRTC media test was added. Welcome capture retains the existing mutation/outbox crash window described above. Existing npm audit findings remain; broad dependency upgrades are a separate regression-sensitive task.
 
 The unified inbox and older frontend modules coexist. The two socketAuth files authenticate versus extract identity; both remain. Legacy Redis/adapter packages remain unused by Socket.IO; BullMQ uses IORedis.
 

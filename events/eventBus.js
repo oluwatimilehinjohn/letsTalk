@@ -2,7 +2,8 @@ const { createEvent } = require("./envelope");
 const { log, failure } = require("../utils/logger");
 const { context } = require("../utils/requestContext");
 async function publish(eventType, data) {
-  if (process.env.EVENTS_ENABLED !== "true") return null;
+  // Registration always captures its welcome-email event, even if chat analytics are disabled.
+  if (process.env.EVENTS_ENABLED !== "true" && eventType !== "user.created") return null;
   const event = createEvent(eventType, data, context.getStore()?.requestId);
   try {
     await require("../models/DomainOutbox").create({ eventId: event.eventId, envelope: event });

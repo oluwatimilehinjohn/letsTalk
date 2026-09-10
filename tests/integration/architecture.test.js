@@ -107,7 +107,11 @@ test("live architecture and existing chat contracts", { timeout: 180000 }, async
   await producer.connect();
   queues = createQueues();
   await queues.notification.waitUntilReady();
-  const processors = createProcessors({ repository, queues, recipients });
+  const sentEmails = [];
+  const processors = createProcessors({ repository, queues, recipients, emailSender: {
+    config: () => ({ from: "test@example.test", appUrl: "https://example.test" }),
+    send: async (payload, key) => { sentEmails.push({ payload, key }); return `test-${key}`; },
+  } });
   let first = true;
   workers = startWorkers({ ...processors, notification: async job => {
     if (first) { first = false; throw new Error("Injected transient failure"); }
@@ -171,12 +175,29 @@ test("live architecture and existing chat contracts", { timeout: 180000 }, async
     await eventually(() => db.auditLog.findFirst({ where: { action: "room.created", entityId: roomId } }));
   });
 
-  await t.test("schedules create delayed jobs; digest stores email and cleanup preserves chat", async () => {
+  await t.test("schedules create delayed jobs; digest sends email and cleanup preserves chat", async () => {
+    await eventually(() => db.emailDelivery.findUnique({ where: { key: `welcome-${bob.id}` } }).then(row => row?.status === "sent"));
+    assert.ok(sentEmails.some(email => email.key === `welcome-${bob.id}` && email.payload.to.includes("test_bob@example.test")));
+    const { previousNigeriaDay } = require("../../services/dailySummaryService");
+    const window = previousNigeriaDay(new Date());
+    const conversationId = new mongoose.Types.ObjectId(dmEvent.data.conversationId);
+    await require("../../models/DirectConversation").collection.updateOne({ _id: conversationId },
+      { $set: { "participants.$[].joinedAt": window.start } });
+    await require("../../models/DirectMessage").collection.insertMany([
+      { conversationId, senderId: new mongoose.Types.ObjectId(alice.id), text: "Yesterday summary example", isDeleted: false, createdAt: window.start },
+      { conversationId, senderId: new mongoose.Types.ObjectId(alice.id), text: "Deleted secret", isDeleted: true, createdAt: window.start },
+    ]);
     await registerSchedules(queues);
     assert.equal((await queues.maintenance.getJobSchedulers()).length, 2);
     const digest = await queues.add("maintenance", "daily-digest", {}, `digest-${run}`);
     await eventually(async () => await digest.getState() === "completed");
-    await eventually(() => db.emailDelivery.findFirst({ where: { template: "unread-message-summary" } }));
+    const key = `digest-${window.date}-${bob.id}`;
+    await eventually(() => db.emailDelivery.findUnique({ where: { key } }).then(row => row?.status === "sent"));
+    const delivered = sentEmails.find(email => email.key === key);
+    assert.ok(delivered.payload.to.includes("test_bob@example.test"));
+    assert.match(delivered.payload.text, /Yesterday summary example/);
+    assert.ok(!delivered.payload.text.includes("Deleted secret"));
+    assert.ok(!delivered.payload.text.includes("integration DM"));
     await db.notification.updateMany({ data: { expiresAt: new Date(0) } });
     const count = await require("../../models/DirectMessage").countDocuments();
     const cleanup = await queues.add("maintenance", "cleanup-notifications", {}, `cleanup-${run}`);

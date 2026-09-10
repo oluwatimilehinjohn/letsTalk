@@ -42,19 +42,19 @@ function createRepository(db) {
         kind: data.kind, entityId: data.entityId, expiresAt: new Date(Date.now() + 30 * 86400000) } });
     });
   }
-  async function email(data) {
-    return once("email-job", data.key, async tx => {
-      const user = await account(data.mongoUserId, tx);
-      await tx.emailDelivery.create({ data: { key: data.key, userId: user.id,
-        template: data.template, payload: { count: data.count || 0 } } });
-    });
-  }
-  const digestUsers = (cursor) => db.userAccount.findMany({
-    where: { preference: { dailyDigest: true } }, orderBy: { id: "asc" }, take: 100,
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}) });
-  const notificationCount = (userId, start, end) => db.notification.count({ where: { userId, createdAt: { gte: start, lt: end } } });
   const cleanup = () => db.notification.deleteMany({ where: { expiresAt: { lt: new Date() } } });
   const listNotifications = mongoUserId => db.notification.findMany({ where: { user: { mongoUserId } }, orderBy: { createdAt: "desc" }, take: 50 });
-  return { account, preferences, once, audit, analytics, notification, email, digestUsers, notificationCount, cleanup, listNotifications };
+  const emailDelivery = key => db.emailDelivery.findUnique({ where: { key } });
+  async function prepareEmail(data) {
+    const user = await account(data.mongoUserId);
+    return db.emailDelivery.upsert({ where: { key: data.key }, update: {}, create: {
+      key: data.key, userId: user.id, template: data.template, payload: data.payload, status: "pending",
+    } });
+  }
+  // Discard the recipient/body after provider acceptance, retaining the deduplication receipt.
+  const markEmailSent = (key, providerId) => db.emailDelivery.update({ where: { key },
+    data: { status: "sent", payload: { providerId } } });
+  return { account, preferences, once, audit, analytics, notification, cleanup, listNotifications,
+    emailDelivery, prepareEmail, markEmailSent };
 }
 module.exports = { createRepository };

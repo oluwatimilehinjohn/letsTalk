@@ -10,7 +10,8 @@ function startWorkers(processors) {
       const result = await processor(job);
       log("info", "job.succeeded", context);
       return result;
-    }, { connection, prefix: process.env.BULLMQ_PREFIX || "lets-talk", concurrency: queue === "maintenance" ? 1 : 5 });
+    }, { connection, prefix: process.env.BULLMQ_PREFIX || "lets-talk", concurrency: queue === "maintenance" ? 1 : 5,
+      ...(queue === "email" ? { limiter: { max: 1, duration: 1000 } } : {}) });
     worker.on("failed", (job, error) => failure("job.failed", error, { queue, jobId: job?.id, attempt: job?.attemptsMade }));
     worker.on("error", error => failure("worker.error", error, { queue }));
     return worker;
