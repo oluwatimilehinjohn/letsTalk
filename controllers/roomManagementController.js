@@ -1,3 +1,4 @@
+const eventBus = require("../events/eventBus");
 const Room = require(
   "../models/Rooms"
 );
@@ -357,6 +358,7 @@ async function updateMemberRole(
     targetMember.role = role;
 
     await room.save();
+    await eventBus.publish("member.role.changed", { actorUserId: request.session.userId, roomId: room._id, targetUserId, role });
 
     response.json({
       success: true,
@@ -469,6 +471,7 @@ async function removeRoomMember(
       );
 
     await room.save();
+    await eventBus.publish("room.member.removed", { actorUserId: currentUserId, roomId: room._id, targetUserId });
 
     response.json({
       success: true,
@@ -571,6 +574,7 @@ async function transferOwnership(
       newOwner.userId;
 
     await room.save();
+    await eventBus.publish("ownership.transferred", { actorUserId: currentUserId, roomId: room._id, targetUserId });
 
     response.json({
       success: true,
@@ -617,6 +621,7 @@ async function archiveRoom(
     room.isArchived = true;
 
     await room.save();
+    await eventBus.publish("room.archived", { actorUserId: request.session.userId, roomId: room._id });
 
     response.json({
       success: true,

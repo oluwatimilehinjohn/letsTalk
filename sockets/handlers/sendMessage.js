@@ -1,3 +1,4 @@
+const { createRoomMessage } = require("../../services/messageService");
 const mongoose = require("mongoose");
 
 const Message = require("../../models/Message");
@@ -155,30 +156,7 @@ function sendMessage(io, socket) {
         replyTo = replyMessage._id;
       }
 
-      const message = await Message.create({
-        roomId: user.roomId,
-
-        userId: user.userId,
-
-        text,
-
-        replyTo,
-
-        reactions: [],
-      });
-
-      await Room.updateOne(
-        {
-          _id: user.roomId,
-        },
-        {
-          $set: {
-            lastMessageId: message._id,
-
-            lastMessageAt: message.createdAt,
-          },
-        },
-      );
+      const message = await createRoomMessage({ roomId: user.roomId, userId: user.userId, text, replyTo });
 
       await message.populate(MESSAGE_POPULATION);
 

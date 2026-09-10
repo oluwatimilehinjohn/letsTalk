@@ -1,3 +1,4 @@
+const eventBus = require("../events/eventBus");
 const express = require("express");
 const bcrypt = require("bcryptjs");
 
@@ -126,6 +127,8 @@ function createAuthRouter(io) {
           email,
           passwordHash,
         });
+
+        await eventBus.publish("user.created", { actorUserId: user._id });
 
         await regenerateSession(request);
 

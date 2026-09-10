@@ -1,3 +1,4 @@
+const eventBus = require("../events/eventBus");
 const Room = require(
   "../models/Rooms"
 );
@@ -321,6 +322,8 @@ async function createRoom(
           false,
       });
 
+    await eventBus.publish("room.created", { actorUserId: userId, roomId: room._id });
+
     const result = {
       room:
         serializeRoom(
@@ -508,6 +511,8 @@ async function joinRoomWithCode(
           new: true,
         }
       );
+
+    if (updatedRoom) await eventBus.publish("room.member.joined", { actorUserId: userId, roomId: room._id });
 
     const finalRoom =
       updatedRoom ||

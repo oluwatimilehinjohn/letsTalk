@@ -45,7 +45,12 @@ const DirectConversation = require("./models/DirectConversation");
 
 const DirectMessage = require("./models/DirectMessage");
 
+const { createLifecycle } = require("./utils/lifecycle");
+const { connectPostgres, closePostgres } = require("./config/postgres");
+const { requestContext } = require("./utils/requestContext");
+const lifecycle = createLifecycle();
 const app = express();
+app.use(requestContext);
 
 const server = http.createServer(app);
 
@@ -78,6 +83,10 @@ app.use(
 const sessionMiddleware = createSessionMiddleware();
 
 app.use(sessionMiddleware);
+lifecycle.add(() => require("mongoose").disconnect());
+lifecycle.add(closePostgres);
+lifecycle.add(() => sessionMiddleware.close());
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 app.get("/health", (request, response) => {
   response.status(200).json({
@@ -122,7 +131,7 @@ app.use("/api", (request, response) => {
 });
 
 app.use((error, request, response, next) => {
-  console.error("Unhandled application error:", error);
+  require("./utils/logger").failure("http.failed", error, { requestId: request.requestId });
 
   if (response.headersSent) {
     next(error);
@@ -144,6 +153,9 @@ async function startServer() {
   try {
     await connectDB();
 
+    await connectPostgres();
+    if (process.env.EVENTS_ENABLED === "true") await require("./models/DomainOutbox").init();
+
     await User.init();
     await Room.init();
     await Message.init();
@@ -152,16 +164,22 @@ async function startServer() {
 
     await seedDefaultRooms();
 
-    server.listen(PORT, "0.0.0.0", () => {
-      console.log("Default rooms are ready.");
-
-      console.log(`Server running on port ${PORT}`);
+    lifecycle.add(() => new Promise(resolve => io.close(resolve)));
+    lifecycle.signals();
+    await new Promise((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(PORT, "0.0.0.0", () => {
+        server.removeListener("error", reject);
+        resolve();
+        console.log(`Server running on port ${server.address().port}`);
+      });
     });
   } catch (error) {
-    console.error("Application startup failed:", error);
-
-    process.exit(1);
+    require("./utils/logger").failure("application.startup.failed", error);
+    await lifecycle.stop(1);
+    if (require.main !== module) throw error;
   }
 }
 
-startServer();
+if (require.main === module) startServer();
+module.exports = { app, io, server, startServer, close: () => lifecycle.close() };
